@@ -1,0 +1,426 @@
+{
+ "about": "How a declared charset is read (spec/canonical-content.md §2 step 0) and how an RFC 2047 encoded word is read (§5). Input and expected text typed by hand from the WHATWG Encoding Standard; the hash is of the typed text.",
+ "regenerate": "python3 spec/test-vectors/charset_vectors.py",
+ "text_parts": [
+  {
+   "id": "mb-001",
+   "charset": "Shift_JIS",
+   "bytes_hex": "93fa967b8cea",
+   "text": "日本語",
+   "text_sha256_base64": "d3EK7cdOz6M2heM6bH31zIMATaG9zvf7KA9cKy6X4KU=",
+   "why": "two-byte characters through the jis0208 index"
+  },
+  {
+   "id": "mb-002",
+   "charset": "Shift_JIS",
+   "bytes_hex": "b1b2b3",
+   "text": "ｱｲｳ",
+   "text_sha256_base64": "LmA8Qwkx/DJcuqMbttKyNDnQT6ZIB9EDUcam74wCF98=",
+   "why": "half-width katakana: one byte each, 0xA1-0xDF"
+  },
+  {
+   "id": "mb-003",
+   "charset": "Shift_JIS",
+   "bytes_hex": "4180fc",
+   "text": "A�",
+   "text_sha256_base64": "mSXefC8u6nTy6Mfsbf/pqIYSRe846ib9NprmJ7AroIM=",
+   "why": "0x41 is ASCII, 0x80 is U+0080, a lead byte with nothing after it is one error"
+  },
+  {
+   "id": "mb-004",
+   "charset": "EUC-JP",
+   "bytes_hex": "c6fccbdcb8ec",
+   "text": "日本語",
+   "text_sha256_base64": "d3EK7cdOz6M2heM6bH31zIMATaG9zvf7KA9cKy6X4KU=",
+   "why": "two-byte characters, lead and trail both 0xA1-0xFE"
+  },
+  {
+   "id": "mb-005",
+   "charset": "EUC-JP",
+   "bytes_hex": "8eb1",
+   "text": "ｱ",
+   "text_sha256_base64": "7KGsljvGNmiuAtH8dFmkrX6ILnYM7wZv+0JRsNc9PI0=",
+   "why": "0x8E introduces half-width katakana"
+  },
+  {
+   "id": "mb-006",
+   "charset": "EUC-JP",
+   "bytes_hex": "8fa2af",
+   "text": "˘",
+   "text_sha256_base64": "lZVhu44aJvsHGAi4E3pYET3QJKl3afF9BR23E++hsK4=",
+   "why": "0x8F introduces the jis0212 index (its first assigned pointer, 108)"
+  },
+  {
+   "id": "mb-006b",
+   "charset": "EUC-JP",
+   "bytes_hex": "8fa1a1",
+   "text": "�",
+   "text_sha256_base64": "g9VEzMIjwFfSv4DT8qMpgsMsPA244mdIINpQZHg/sJc=",
+   "why": "a jis0212 pointer the index leaves undefined is one error"
+  },
+  {
+   "id": "mb-007",
+   "charset": "ISO-2022-JP",
+   "bytes_hex": "1b2442467c4b5c386c1b2842",
+   "text": "日本語",
+   "text_sha256_base64": "d3EK7cdOz6M2heM6bH31zIMATaG9zvf7KA9cKy6X4KU=",
+   "why": "an escape into the two-byte state and back to ASCII"
+  },
+  {
+   "id": "mb-008",
+   "charset": "ISO-2022-JP",
+   "bytes_hex": "1b284a5c7e1b2842",
+   "text": "¥‾",
+   "text_sha256_base64": "zj5e5LrbZNT5UxVVzbqz2C8oPThQcZdPeXaqn1m64nk=",
+   "why": "the Roman state: 0x5C is the yen sign and 0x7E the overline"
+  },
+  {
+   "id": "mb-009",
+   "charset": "ISO-2022-JP",
+   "bytes_hex": "1b2849211b2842",
+   "text": "｡",
+   "text_sha256_base64": "bypfcALFJQF/pawL9hMrM/aMxr+GgcWN332ymfo/Mjs=",
+   "why": "the katakana state"
+  },
+  {
+   "id": "mb-010",
+   "charset": "ISO-2022-JP",
+   "bytes_hex": "1b24421b28421b2842",
+   "text": "��",
+   "text_sha256_base64": "Unk/jcHYXkCfjIi+mdizHVj2diRjQBUPQGKJ4EoRFR4=",
+   "why": "three escapes with nothing written between them: the second and the third are each an error, because the output flag was still set"
+  },
+  {
+   "id": "mb-011",
+   "charset": "ISO-2022-JP",
+   "bytes_hex": "1b2442467c",
+   "text": "日",
+   "text_sha256_base64": "hSF/ev93hBQ4Q5+z5883uzBi+wJkU8dpIkfTpWQaARU=",
+   "why": "the part ends in the two-byte state: what was written stays, no error"
+  },
+  {
+   "id": "mb-012",
+   "charset": "EUC-KR",
+   "bytes_hex": "c7d1b1b9beee",
+   "text": "한국어",
+   "text_sha256_base64": "6jJSKBvDvOxWctM+yMJd7oq9dyNfhbigSZSPWd32C40=",
+   "why": "two-byte characters through the euc-kr index"
+  },
+  {
+   "id": "mb-013",
+   "charset": "EUC-KR",
+   "bytes_hex": "8141",
+   "text": "갂",
+   "text_sha256_base64": "Jg6Ny7x2LXii4ukOr8bom1m8SSXoRQXaQW+uamPvsYE=",
+   "why": "a trail byte below 0x80 is valid in this encoding (pointer 0)"
+  },
+  {
+   "id": "mb-014",
+   "charset": "Big5",
+   "bytes_hex": "a4a4a4e5",
+   "text": "中文",
+   "text_sha256_base64": "cnJtiBj2kwZs62mvo2Qhi2kuYuqSs4V4I2N4D0dSnCE=",
+   "why": "two-byte characters through the big5 index"
+  },
+  {
+   "id": "mb-015",
+   "charset": "Big5",
+   "bytes_hex": "8862",
+   "text": "Ê̄",
+   "text_sha256_base64": "VuAT2s8rJeYUcmpIYYJhuTTstl9lQzcUJuQGkk1h6is=",
+   "why": "one of the four pointers the standard answers with TWO code points"
+  },
+  {
+   "id": "mb-016",
+   "charset": "GBK",
+   "bytes_hex": "d6d0cec4",
+   "text": "中文",
+   "text_sha256_base64": "cnJtiBj2kwZs62mvo2Qhi2kuYuqSs4V4I2N4D0dSnCE=",
+   "why": "two-byte characters through the gb18030 index"
+  },
+  {
+   "id": "mb-017",
+   "charset": "gb18030",
+   "bytes_hex": "8130813081308130",
+   "text": "",
+   "text_sha256_base64": "fuxUAgSuEz/emht9pBqz/BVukW11SrkWY6XljNcderQ=",
+   "why": "two four-byte sequences through the range rule, both pointer 0"
+  },
+  {
+   "id": "mb-018",
+   "charset": "gb18030",
+   "bytes_hex": "80",
+   "text": "€",
+   "text_sha256_base64": "xMyQ7T0m8S1LCKdRQJcKeQQDXDHLtFFag/GbkAPADR0=",
+   "why": "0x80 alone is the euro sign in this encoding"
+  },
+  {
+   "id": "mb-019",
+   "charset": "gb18030",
+   "bytes_hex": "e3329a35",
+   "text": "􏿿",
+   "text_sha256_base64": "cIuK3Z9rW1VqB7cpc7EP+aPsMOACA07ySqB2+rS0DlA=",
+   "why": "the last pointer the range rule answers, 1237575"
+  },
+  {
+   "id": "mb-020",
+   "charset": "UTF-16LE",
+   "bytes_hex": "48006900",
+   "text": "Hi",
+   "text_sha256_base64": "NjnvzQirsnOxYZ6C54wpp98CwQUbGCDpn8OV3KozJrg=",
+   "why": "two code units, low byte first"
+  },
+  {
+   "id": "mb-021",
+   "charset": "UTF-16BE",
+   "bytes_hex": "00480069",
+   "text": "Hi",
+   "text_sha256_base64": "NjnvzQirsnOxYZ6C54wpp98CwQUbGCDpn8OV3KozJrg=",
+   "why": "the same two, high byte first"
+  },
+  {
+   "id": "mb-022",
+   "charset": "UTF-16LE",
+   "bytes_hex": "3dd800de",
+   "text": "😀",
+   "text_sha256_base64": "8EQ6NCxe9UeDoRG1G6Vsk45HTDIyTZDDpgycjjo34tk=",
+   "why": "a well-formed surrogate pair"
+  },
+  {
+   "id": "mb-023",
+   "charset": "UTF-16LE",
+   "bytes_hex": "00d84100",
+   "text": "�A",
+   "text_sha256_base64": "G22KeDY885CJXrqHa5/vuZ1zUGu0D+McTv6ytY9/4fw=",
+   "why": "a lead surrogate followed by an ordinary unit: one error, then the unit"
+  },
+  {
+   "id": "mb-024",
+   "charset": "UTF-16LE",
+   "bytes_hex": "410042",
+   "text": "A�",
+   "text_sha256_base64": "1vIWPva3QA8ufGfJUtMsqPPpbK1JNAvCI2oJxTPPzig=",
+   "why": "an odd number of bytes: the trailing byte is one error"
+  },
+  {
+   "id": "mb-025",
+   "charset": "UTF-16LE",
+   "bytes_hex": "fffe4100",
+   "text": "﻿A",
+   "text_sha256_base64": "TZG8QI8Zry6Ug6IWrnFnPg7kVuznoSmY3SB+UE9PGaY=",
+   "why": "no byte order mark sniffing: the mark is read as U+FEFF"
+  },
+  {
+   "id": "mb-026",
+   "charset": "x-user-defined",
+   "bytes_hex": "418081ff",
+   "text": "A",
+   "text_sha256_base64": "FjUApjnGqjTFcFY4hS7AuILjplADYvjvFFsadRMXOXU=",
+   "why": "ASCII stays, every other byte is U+F780 plus the byte minus 0x80"
+  },
+  {
+   "id": "mb-027",
+   "charset": "iso-2022-kr",
+   "bytes_hex": "41424344",
+   "text": "�",
+   "text_sha256_base64": "g9VEzMIjwFfSv4DT8qMpgsMsPA244mdIINpQZHg/sJc=",
+   "why": "a label the standard maps to `replacement`: one error for the whole part"
+  },
+  {
+   "id": "mb-028",
+   "charset": "iso-2022-kr",
+   "bytes_hex": "",
+   "text": "",
+   "text_sha256_base64": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "why": "the same label, no bytes: nothing, not an error"
+  },
+  {
+   "id": "mb-030",
+   "charset": "Big5",
+   "bytes_hex": "8781",
+   "text": "�",
+   "text_sha256_base64": "g9VEzMIjwFfSv4DT8qMpgsMsPA244mdIINpQZHg/sJc=",
+   "why": "a trail byte outside 0x40-0x7E and 0xA1-0xFE: one error, and nothing is read again because the byte is not ASCII"
+  },
+  {
+   "id": "mb-030b",
+   "charset": "Big5",
+   "bytes_hex": "87ae",
+   "text": "䤰",
+   "text_sha256_base64": "NdP3gBLgqTZ0P98vtOp6OzxdXwzqjpKCnEroHNDsRY4=",
+   "why": "an assigned pointer (1018) where node's ICU decoder answers with a private use character instead"
+  },
+  {
+   "id": "mb-031",
+   "charset": "GBK",
+   "bytes_hex": "ff44",
+   "text": "�D",
+   "text_sha256_base64": "Q1VmdOLcV78aM4NjbCu9SvDIY9M1yxxg/KZkn3z+2Ig=",
+   "why": "0xFF is no lead byte; the ASCII byte after it is read again"
+  },
+  {
+   "id": "mb-032",
+   "charset": "EUC-KR",
+   "bytes_hex": "8180",
+   "text": "�",
+   "text_sha256_base64": "g9VEzMIjwFfSv4DT8qMpgsMsPA244mdIINpQZHg/sJc=",
+   "why": "an unassigned pointer whose trail byte is not ASCII: one error"
+  },
+  {
+   "id": "mb-033",
+   "charset": "Shift_JIS",
+   "bytes_hex": "8140",
+   "text": "　",
+   "text_sha256_base64": "TXbVNiO85hZI917qHTGQ4TutS+Af/gZGWbRF5EP7HbQ=",
+   "why": "the first pointer of the jis0208 index"
+  },
+  {
+   "id": "mb-034",
+   "charset": "EUC-JP",
+   "bytes_hex": "a141",
+   "text": "�A",
+   "text_sha256_base64": "G22KeDY885CJXrqHa5/vuZ1zUGu0D+McTv6ytY9/4fw=",
+   "why": "a trail byte outside 0xA1-0xFE is read again as itself"
+  },
+  {
+   "id": "sb-001",
+   "charset": "windows-1250",
+   "bytes_hex": "50f8ed6c6f6861",
+   "text": "Příloha",
+   "text_sha256_base64": "95f3ZXko4tq2+PINpAP1ZHZNKvpigRkOuv2HbT1nyuw=",
+   "why": "the single-byte table decides, not the runtime"
+  },
+  {
+   "id": "sb-002",
+   "charset": "iso-8859-1",
+   "bytes_hex": "93c22094",
+   "text": "“Â ”",
+   "text_sha256_base64": "c1RRCH6Y2mj4QMSWyQYJsDZn5MV7RJjYcfWvj41T41I=",
+   "why": "iso-8859-1 names windows-1252, so 0x93 is a quotation mark"
+  },
+  {
+   "id": "un-001",
+   "charset": "utf-32",
+   "bytes_hex": "50c5996ed96f6861",
+   "text": "Přn�oha",
+   "text_sha256_base64": "muvqUlPkMa1UCT5XRUa8+p3H8W4AhjuLIizZLb91hVM=",
+   "why": "a label no table names is read as UTF-8, errors and all"
+  },
+  {
+   "id": "un-002",
+   "charset": "x-unknown",
+   "bytes_hex": "c5be",
+   "text": "ž",
+   "text_sha256_base64": "S2h3qdSAWOXCMEa9PNkvTHYE8MH4UJ1CuREuBXAjuHI=",
+   "why": "the same rule for any other unknown label"
+  },
+  {
+   "id": "un-003",
+   "charset": "",
+   "bytes_hex": "c5be",
+   "text": "ž",
+   "text_sha256_base64": "S2h3qdSAWOXCMEa9PNkvTHYE8MH4UJ1CuREuBXAjuHI=",
+   "why": "no label at all is UTF-8 too"
+  }
+ ],
+ "subjects": [
+  {
+   "id": "sj-001",
+   "raw": "=?UTF-8?B?RmFrdHVyYSA0MjAwIEVVUg==?=",
+   "text": "Faktura 4200 EUR",
+   "text_sha256_base64": "W3LwTlZMwWwryTi5Ydh8QRqU0dBTuyWX3IE20qxse9A=",
+   "why": "an ordinary B word"
+  },
+  {
+   "id": "sj-002",
+   "raw": "=?UTF-8?Q?Faktura_4200_EUR?=",
+   "text": "Faktura 4200 EUR",
+   "text_sha256_base64": "W3LwTlZMwWwryTi5Ydh8QRqU0dBTuyWX3IE20qxse9A=",
+   "why": "a Q word: underscore is a space"
+  },
+  {
+   "id": "sj-003",
+   "raw": "=?ISO-2022-JP?B?GyRCRnxLXDhsGyhC?=",
+   "text": "日本語",
+   "text_sha256_base64": "d3EK7cdOz6M2heM6bH31zIMATaG9zvf7KA9cKy6X4KU=",
+   "why": "the word's charset is read by the rule of section 2 step 0"
+  },
+  {
+   "id": "sj-004",
+   "raw": "=?windows-1250?Q?Faktura_=81?=",
+   "text": "Faktura ",
+   "text_sha256_base64": "b7d462GO+HUEmTHF4ee3RLnIgkXDx2SpG6C3DC+Yo1A=",
+   "why": "the single-byte table decides here too"
+  },
+  {
+   "id": "sj-005",
+   "raw": "=?iso-8859-1?Q?=93quoted=94?=",
+   "text": "“quoted”",
+   "text_sha256_base64": "Z1WHZ4qxhyBECKmAQpmpOkl2P8VoxHLlZj6Gyx1iUhw=",
+   "why": "iso-8859-1 names windows-1252 in a Subject as well"
+  },
+  {
+   "id": "sj-006",
+   "raw": "=?UNKNOWN-LABEL?Q?x?=",
+   "text": "x",
+   "text_sha256_base64": "LXEWQrcmsEQBYnyp+6wy9chTD7GQPMTbAiWHF5IaSIE=",
+   "why": "a charset name no table knows is UTF-8, not a refusal"
+  },
+  {
+   "id": "sj-007",
+   "raw": "=?UTF-8?B?not base64?=",
+   "text": "=?UTF-8?B?not base64?=",
+   "text_sha256_base64": "huyjwvQjZqprFU1brOdavR/li3EPXCXUGJv4xiw1QTA=",
+   "why": "a broken B payload: not an encoded word, kept as it stands"
+  },
+  {
+   "id": "sj-008",
+   "raw": "=?UTF-8?X?abc?=",
+   "text": "=?UTF-8?X?abc?=",
+   "text_sha256_base64": "VIX0JyLaKfDdsT8s5sDRU65w3Rizrpgo5dJe+JVu2Po=",
+   "why": "an encoding letter that is neither B nor Q: kept as it stands"
+  },
+  {
+   "id": "sj-009",
+   "raw": "=?UTF-8?B?U3ByYXZh?= =?UTF-8?B?ZGFsc2k=?=",
+   "text": "Spravadalsi",
+   "text_sha256_base64": "bdaHlYfSpMum8/+0tflkE1DLCeuCEILXwzPxctKQsUw=",
+   "why": "whitespace between two adjacent words is removed"
+  },
+  {
+   "id": "sj-010",
+   "raw": "=?UTF-8?B?U3ByYXZh?=  plain  =?UTF-8?B?ZGFsc2k=?=",
+   "text": "Sprava  plain  dalsi",
+   "text_sha256_base64": "ApJKZ/y2IWQMj9B2VMxuj3iuzO6fjF6HrbILNGTlvSg=",
+   "why": "text between words is kept exactly"
+  },
+  {
+   "id": "sj-011",
+   "raw": "=?UTF-8*en?Q?tag?=",
+   "text": "tag",
+   "text_sha256_base64": "KhBzpuZ/Dl8JpZV8ZZUDxpDv5ycr6DE9+HJVappoTYw=",
+   "why": "an RFC 2231 language tag is dropped"
+  },
+  {
+   "id": "sj-012",
+   "raw": "Re: =?UTF-8?B?VsSbYw==?= (fwd)",
+   "text": "Re: Věc (fwd)",
+   "text_sha256_base64": "R+cYueDfMSLI0t96vLDGA9cRiaqpuPAiw9YN/VX/bEY=",
+   "why": "plain text around a word is kept"
+  },
+  {
+   "id": "sj-013",
+   "raw": "=?UTF-8?B?VsSbYw==?=\r\n =?UTF-8?B?ZHJ1aMSb?=",
+   "text": "Věcdruhě",
+   "text_sha256_base64": "VmWiFZewZtPpjtyz9vvcAC1Z5Yk61Oi0s0/pLBH1VIw=",
+   "why": "a folded Subject is unfolded first, then the words join"
+  },
+  {
+   "id": "sj-014",
+   "raw": "plain subject",
+   "text": "plain subject",
+   "text_sha256_base64": "4AgqsbPqEoc2wAdaIam5+kLrc/PpmBtTl09ocrDtnnI=",
+   "why": "no words at all"
+  }
+ ]
+}

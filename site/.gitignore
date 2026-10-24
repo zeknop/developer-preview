@@ -1,0 +1,3 @@
+# The built page belongs to this package: a "dist/" rule anywhere above this
+# directory must not drop it, because the source beside it has unresolved links.
+!dist/

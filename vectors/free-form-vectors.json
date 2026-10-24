@@ -1,0 +1,379 @@
+{
+  "about": "The free text form of spec/canonical-content.md §2b: input, the text §2b.2 makes of it, and SHA-256 of that text as UTF-8, base64. Inputs and expected texts are typed from the specification, never read out of an implementation.",
+  "spec": "spec/canonical-content.md §2b",
+  "unicode_version": "15.1.0",
+  "regenerate": "python3 spec/test-vectors/free_form_vectors.py",
+  "vectors": [
+    {
+      "id": "ff-001-plain-invoice",
+      "kind": "text",
+      "input": "Amount due: 4 200 EUR\nAccount: LT12 3456 7890\nThank you.",
+      "text": "Amount due: 4 200 EUR Account: LT12 3456 7890 Thank you.",
+      "hash": "spdg8O5HCOFX31MS2x1/DmHzQG5EEUK6D/lo7nfMoEU="
+    },
+    {
+      "id": "ff-002-crlf-and-trailing-spaces",
+      "kind": "text",
+      "input": "Amount due: 4 200 EUR \r\nAccount: LT12 3456 7890 \r\nThank you. \r\n",
+      "text": "Amount due: 4 200 EUR Account: LT12 3456 7890 Thank you.",
+      "hash": "spdg8O5HCOFX31MS2x1/DmHzQG5EEUK6D/lo7nfMoEU="
+    },
+    {
+      "id": "ff-003-rewrapped-lines",
+      "kind": "text",
+      "input": "Amount due: 4 200 EUR\nAccount: LT12 3456\n7890\nThank you.",
+      "text": "Amount due: 4 200 EUR Account: LT12 3456 7890 Thank you.",
+      "hash": "spdg8O5HCOFX31MS2x1/DmHzQG5EEUK6D/lo7nfMoEU="
+    },
+    {
+      "id": "ff-004-no-break-spaces",
+      "kind": "text",
+      "input": "Amount due: 4 200 EUR\nAccount: LT12 3456 7890\nThank you.",
+      "text": "Amount due: 4 200 EUR Account: LT12 3456 7890 Thank you.",
+      "hash": "spdg8O5HCOFX31MS2x1/DmHzQG5EEUK6D/lo7nfMoEU="
+    },
+    {
+      "id": "ff-005-blank-lines-flattened",
+      "kind": "text",
+      "input": "a\n\n\n\nb",
+      "text": "a b",
+      "hash": "yGh6CKpdbtIEQyj6aml6uOltw0KR6MIDSujDjm/MbWU="
+    },
+    {
+      "id": "ff-006-tabs-and-exotic-spaces",
+      "kind": "text",
+      "input": "a\t    　b",
+      "text": "a b",
+      "hash": "yGh6CKpdbtIEQyj6aml6uOltw0KR6MIDSujDjm/MbWU="
+    },
+    {
+      "id": "ff-007-line-and-paragraph-separators",
+      "kind": "text",
+      "input": "a b c",
+      "text": "a b c",
+      "hash": "Dp9kAx/LK8cItTHCogRBWAQl0VGjhQPzhZKn3TYBnTs="
+    },
+    {
+      "id": "ff-008-next-line-is-whitespace-here",
+      "kind": "text",
+      "input": "ab",
+      "text": "a b",
+      "hash": "yGh6CKpdbtIEQyj6aml6uOltw0KR6MIDSujDjm/MbWU="
+    },
+    {
+      "id": "ff-009-zero-width-no-break-space-is-removed",
+      "kind": "text",
+      "input": "﻿a﻿b﻿",
+      "text": "ab",
+      "hash": "+44g/C5MPySMYMOb1lLzwTRymLuXe4tNWQO4UFViBgM="
+    },
+    {
+      "id": "ff-010-trim-both-ends",
+      "kind": "text",
+      "input": "   \n\t a b \n   ",
+      "text": "a b",
+      "hash": "yGh6CKpdbtIEQyj6aml6uOltw0KR6MIDSujDjm/MbWU="
+    },
+    {
+      "id": "ff-011-empty",
+      "kind": "text",
+      "input": "",
+      "text": "",
+      "hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+    },
+    {
+      "id": "ff-012-whitespace-only",
+      "kind": "text",
+      "input": " \n\t  ",
+      "text": "",
+      "hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+    },
+    {
+      "id": "ff-020-nfc-composes",
+      "kind": "text",
+      "input": "Å",
+      "text": "Å",
+      "hash": "CpTcnUINEULWtx3mD5v34vNFpNYsnxQbCRU5dp3fMHU="
+    },
+    {
+      "id": "ff-021-nfc-singleton-angstrom",
+      "kind": "text",
+      "input": "Å",
+      "text": "Å",
+      "hash": "CpTcnUINEULWtx3mD5v34vNFpNYsnxQbCRU5dp3fMHU="
+    },
+    {
+      "id": "ff-022-nfc-reorders-by-combining-class",
+      "kind": "text",
+      "input": "q̣̇",
+      "text": "q̣̇",
+      "hash": "F/p5QmOJHM8g1kf2lMpvio0kMm3x1zKwUCDAZX3aO2g="
+    },
+    {
+      "id": "ff-023-nfc-hangul-composes",
+      "kind": "text",
+      "input": "각",
+      "text": "각",
+      "hash": "ReyQnzAXTmWFxngzY47OK3N1Ki4XsULyBx0Fh5LxbIk="
+    },
+    {
+      "id": "ff-024-nfc-leaves-an-excluded-pair-apart",
+      "kind": "text",
+      "input": "ྲྀ",
+      "text": "ྲྀ",
+      "hash": "rRQcsmTyED1imnfEe9XD21Zn3+IkeoZaukNy3PDCRIQ="
+    },
+    {
+      "id": "ff-025-nfc-does-not-touch-compatibility",
+      "kind": "text",
+      "input": "ﬁ",
+      "text": "ﬁ",
+      "hash": "tlVMzoqT8ciBgoDip2gRankhatVQGoU1fSM0CduH00A="
+    },
+    {
+      "id": "ff-040-html-blocks-break-lines",
+      "kind": "html",
+      "input": "<p>a</p><p>b</p>",
+      "text": "a b",
+      "hash": "yGh6CKpdbtIEQyj6aml6uOltw0KR6MIDSujDjm/MbWU="
+    },
+    {
+      "id": "ff-041-html-inline-does-not",
+      "kind": "html",
+      "input": "a<span>b</span>c",
+      "text": "abc",
+      "hash": "ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0="
+    },
+    {
+      "id": "ff-042-html-br",
+      "kind": "html",
+      "input": "a<br>b",
+      "text": "a b",
+      "hash": "yGh6CKpdbtIEQyj6aml6uOltw0KR6MIDSujDjm/MbWU="
+    },
+    {
+      "id": "ff-043-html-attribute-containing-gt",
+      "kind": "html",
+      "input": "<a title=\"x>y\">link</a>tail",
+      "text": "linktail",
+      "hash": "bBrZA9UzjNjAuIvwPqPMkmFsA/QhY4KPTizg8SbpLLg="
+    },
+    {
+      "id": "ff-044-html-single-quoted-attribute-containing-gt",
+      "kind": "html",
+      "input": "<a title='x>y'>link</a>tail",
+      "text": "linktail",
+      "hash": "bBrZA9UzjNjAuIvwPqPMkmFsA/QhY4KPTizg8SbpLLg="
+    },
+    {
+      "id": "ff-045-html-comment-dropped",
+      "kind": "html",
+      "input": "<!-- hidden -->shown",
+      "text": "shown",
+      "hash": "uq9TYipR2XUjXydih73BtkqkZAx3FCy8oHaHfZ6saBU="
+    },
+    {
+      "id": "ff-046-html-unterminated-comment-eats-the-rest",
+      "kind": "html",
+      "input": "<!-- hidden shown",
+      "text": "",
+      "hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+    },
+    {
+      "id": "ff-047-html-cdata-is-a-bogus-comment",
+      "kind": "html",
+      "input": "<![CDATA[hidden]]>after",
+      "text": "after",
+      "hash": "85WSOT7whZyxlqUmk9LOoA+y33hLPASuVKp8rbjlYvg="
+    },
+    {
+      "id": "ff-048-html-doctype-dropped",
+      "kind": "html",
+      "input": "<!DOCTYPE html>body",
+      "text": "body",
+      "hash": "Iw2DWNyOiJC0xY3utikS7i8gNXrpKlzIYbmOaP4xrLU="
+    },
+    {
+      "id": "ff-049-html-script-content-dropped",
+      "kind": "html",
+      "input": "<script>secret()</script>shown",
+      "text": "shown",
+      "hash": "uq9TYipR2XUjXydih73BtkqkZAx3FCy8oHaHfZ6saBU="
+    },
+    {
+      "id": "ff-050-html-style-content-dropped",
+      "kind": "html",
+      "input": "<style>.x{a:b}</style>shown",
+      "text": "shown",
+      "hash": "uq9TYipR2XUjXydih73BtkqkZAx3FCy8oHaHfZ6saBU="
+    },
+    {
+      "id": "ff-051-html-template-content-dropped",
+      "kind": "html",
+      "input": "<template><p>hidden</p></template>shown",
+      "text": "shown",
+      "hash": "uq9TYipR2XUjXydih73BtkqkZAx3FCy8oHaHfZ6saBU="
+    },
+    {
+      "id": "ff-052-html-unclosed-script-eats-the-rest",
+      "kind": "html",
+      "input": "<script>never closed",
+      "text": "",
+      "hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+    },
+    {
+      "id": "ff-053-html-lt-that-is-not-a-tag",
+      "kind": "html",
+      "input": "a < b and 3<4",
+      "text": "a < b and 3<4",
+      "hash": "D5utFbHKlj4V/7D0YrAwerYJ5u8tm4LNZgml2WQ3LYQ="
+    },
+    {
+      "id": "ff-054-html-unclosed-attribute-quote-eats-the-rest",
+      "kind": "html",
+      "input": "<p a='unclosed>x</p>",
+      "text": "",
+      "hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+    },
+    {
+      "id": "ff-055-html-mobile-forward-shape",
+      "kind": "html",
+      "input": "<div dir=\"ltr\">Amount due: 4&nbsp;200 EUR<br>Account: LT12 3456 7890<br>Thank you.</div>",
+      "text": "Amount due: 4 200 EUR Account: LT12 3456 7890 Thank you.",
+      "hash": "spdg8O5HCOFX31MS2x1/DmHzQG5EEUK6D/lo7nfMoEU="
+    },
+    {
+      "id": "ff-060-named-with-semicolon",
+      "kind": "html",
+      "input": "x&amp;y",
+      "text": "x&y",
+      "hash": "7DkbbnFxpDpNu/u4iyVLbuWLXYphH/W4yMOpdIuVRhY="
+    },
+    {
+      "id": "ff-061-legacy-named-without-semicolon",
+      "kind": "html",
+      "input": "x&amp y",
+      "text": "x& y",
+      "hash": "CN5nYvUhS0pvgFoGQNli14azkwuzXN6ryK4q8MnQU2o="
+    },
+    {
+      "id": "ff-062-longest-match-wins",
+      "kind": "html",
+      "input": "&notit;",
+      "text": "¬it;",
+      "hash": "BsERjQyfdps//+iSou6ll97+tREoDQIc8KbnLppPj/Q="
+    },
+    {
+      "id": "ff-063-unknown-name-is-literal",
+      "kind": "html",
+      "input": "&unknown;",
+      "text": "&unknown;",
+      "hash": "gumAfJWSp230vPx06s9BUoz7yzwUSmwGMqbvRlx96sc="
+    },
+    {
+      "id": "ff-064-numeric-decimal",
+      "kind": "html",
+      "input": "&#65;&#66",
+      "text": "AB",
+      "hash": "OBZPvRdgPXP2lri01yZk1zW7anyIV3aH/SrjP9aWQVM="
+    },
+    {
+      "id": "ff-065-numeric-hex-both-cases",
+      "kind": "html",
+      "input": "&#x41;&#X42;",
+      "text": "AB",
+      "hash": "OBZPvRdgPXP2lri01yZk1zW7anyIV3aH/SrjP9aWQVM="
+    },
+    {
+      "id": "ff-066-numeric-zero",
+      "kind": "html",
+      "input": "&#0;",
+      "text": "�",
+      "hash": "g9VEzMIjwFfSv4DT8qMpgsMsPA244mdIINpQZHg/sJc="
+    },
+    {
+      "id": "ff-067-numeric-surrogate",
+      "kind": "html",
+      "input": "&#xD800;",
+      "text": "�",
+      "hash": "g9VEzMIjwFfSv4DT8qMpgsMsPA244mdIINpQZHg/sJc="
+    },
+    {
+      "id": "ff-068-numeric-out-of-range",
+      "kind": "html",
+      "input": "&#x110000;&#999999999999;",
+      "text": "��",
+      "hash": "Unk/jcHYXkCfjIi+mdizHVj2diRjQBUPQGKJ4EoRFR4="
+    },
+    {
+      "id": "ff-069-numeric-c1-becomes-windows-1252",
+      "kind": "html",
+      "input": "&#128;&#x9F;",
+      "text": "€Ÿ",
+      "hash": "mYOsii0ptCaKYLKgdeXqSnyPcTdswzoCSwe3u/oRxkQ="
+    },
+    {
+      "id": "ff-070-numeric-noncharacter-is-kept",
+      "kind": "html",
+      "input": "&#xFFFE;",
+      "text": "￾",
+      "hash": "TP6SX/xCm312JqJaPWCiZZL2x8NS1AaDEQgKvFhQLXY="
+    },
+    {
+      "id": "ff-071-ampersand-with-no-reference",
+      "kind": "html",
+      "input": "&#; & &#x;",
+      "text": "&#; & &#x;",
+      "hash": "EvyASpLJQbuJqs2zJ2/h75pnb1Zv6CmGShVhrmGK/18="
+    },
+    {
+      "id": "ff-072-reference-then-nfc",
+      "kind": "html",
+      "input": "A&#x30a;",
+      "text": "Å",
+      "hash": "CpTcnUINEULWtx3mD5v34vNFpNYsnxQbCRU5dp3fMHU="
+    },
+    {
+      "id": "ff-073-long-name",
+      "kind": "html",
+      "input": "&CounterClockwiseContourIntegral;",
+      "text": "∳",
+      "hash": "1AxgBPjTp12HGitwDJRMNzChouKhdS4JwbJQJtbE98c="
+    },
+    {
+      "id": "ff-080-quoted-envelope-inside-is-content",
+      "kind": "text",
+      "input": "Reply text\n> ======= ZEKNOP =======\n> quoted body\n> ======= END ZEKNOP =======",
+      "text": "Reply text > ======= ZEKNOP ======= > quoted body > ======= END ZEKNOP =======",
+      "hash": "xGxImgyqPbzVz9mSrzBR/xS65BzT7QGpDQNVgqlPwdw="
+    },
+    {
+      "id": "ff-081-indented-envelope-inside-is-content",
+      "kind": "text",
+      "input": "See below\n    ======= ZEKNOP =======\n    body",
+      "text": "See below ======= ZEKNOP ======= body",
+      "hash": "m3A/v3mwqDfv2iZLfu/A7Rq0eYX93rDy34ATm6l8IfU="
+    },
+    {
+      "id": "ff-090-changed-amount",
+      "kind": "text",
+      "input": "Amount due: 4 900 EUR\nAccount: LT12 3456 7890\nThank you.",
+      "text": "Amount due: 4 900 EUR Account: LT12 3456 7890 Thank you.",
+      "hash": "eakxI6Jr5kcK/rD8YpCYWAZ93ZhjnqU4NGEYf5FRti0="
+    },
+    {
+      "id": "ff-091-changed-account-number",
+      "kind": "text",
+      "input": "Amount due: 4 200 EUR\nAccount: LT12 3456 7891\nThank you.",
+      "text": "Amount due: 4 200 EUR Account: LT12 3456 7891 Thank you.",
+      "hash": "x5VIIcx4EVTyx69pOgcluTG5+DQ35G9fl/PNOKkSoP8="
+    },
+    {
+      "id": "ff-092-reordered-lines",
+      "kind": "text",
+      "input": "Account: LT12 3456 7890\nAmount due: 4 200 EUR\nThank you.",
+      "text": "Account: LT12 3456 7890 Amount due: 4 200 EUR Thank you.",
+      "hash": "tOVZW1wTligLfoqhMHQdg2RUWEbRNCI8Bmim9YZZQTw="
+    }
+  ]
+}

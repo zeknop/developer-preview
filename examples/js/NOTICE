@@ -1,0 +1,60 @@
+ZEKNOP Signed Email — JavaScript example client
+Copyright 2026 Zeknod OÜ
+
+This product includes software developed by Zeknod OÜ.
+Licensed under the Apache License, Version 2.0; see LICENSE.
+
+ZEKNOP is a protocol. Zeknod OÜ is its publisher.
+Zeknod® is a registered trade mark of Zeknod OÜ (EUTM 019305293).
+
+The canonicalisation in this example is a copy
+----------------------------------------------
+The two fingerprints of a message have exactly one right answer, so this example
+does not reimplement the way they are computed: the files under
+`vendor/canonical/` are a copy of the ZEKNOP reference implementation of the
+canonical content specification, taken from one fixed revision of it and
+carrying this licence header. Apart from that header and the substitutions
+recorded with the copy — each of them inside a comment, and none of them
+changing the program — nothing in those files was changed.
+
+The copied files:
+
+    vendor/canonical/base.mjs
+    vendor/canonical/digest.mjs
+    vendor/canonical/envelope.mjs
+    vendor/canonical/free-form.mjs
+    vendor/canonical/headers.mjs
+    vendor/canonical/index.mjs
+    vendor/canonical/message.mjs
+    vendor/canonical/mime.mjs
+    vendor/canonical/multi-byte.mjs
+    vendor/canonical/sig-alg.mjs
+    vendor/canonical/single-byte.mjs
+
+The substitutions are the ones a published file calls for: a comment that
+pointed at a file of the publisher's own repository now points at the section of
+the specification that states the same rule, and a comment written about one
+particular reader is written about any reader of this protocol. That the code
+itself is the same program as the code of that revision was checked when the copy
+was made, by parsing the source and the copy and comparing both their lists of
+tokens and their parse trees.
+
+`single-byte.mjs` and `multi-byte.mjs` are generated from the index data of the
+WHATWG Encoding Standard (https://encoding.spec.whatwg.org/), and `free-form.mjs`
+from pinned Unicode character data and the HTML5 named character references; each
+of those files names its own sources in its header, and `free-form.mjs` also
+carries the pinned Unicode version in its code.
+
+Where a comment in the copied files says something was measured — a time, a
+memory peak, how two readers disagreed — the measurement is the publisher's,
+made while the reference implementation was written, and its evidence is not
+part of this package. Those numbers say why a line of code has the shape it has;
+they are not a claim about how fast this example is. Where a comment says a
+property is held by a test or a gate, that test is the publisher's too.
+
+That the copy answers what the reference implementation answers is not a promise
+made here: the `conformance` command runs it over every vector the preview
+publishes, and `../../vectors/CONFORMANCE.md` says what a matching report means and
+what it does not.
+
+Everything else in this directory is written for this example.

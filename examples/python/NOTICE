@@ -1,0 +1,56 @@
+ZEKNOP Signed Email — Python example client
+Copyright 2026 Zeknod OÜ
+
+This product includes software developed by Zeknod OÜ.
+Licensed under the Apache License, Version 2.0; see LICENSE.
+
+ZEKNOP is a protocol. Zeknod OÜ is its publisher.
+Zeknod® is a registered trade mark of Zeknod OÜ (EUTM 019305293).
+
+The canonicalisation in this example is a copy
+----------------------------------------------
+The two hashes of a message have exactly one right answer, so this example does
+not reimplement the way they are computed: the files under
+`zeknop_example/canonicalization/` are a copy of the ZEKNOP reference
+implementation of the canonical content specification, taken from one fixed
+revision of it and carrying this licence header. Apart from that header, the
+normalisation of the line endings, and the substitutions recorded with the copy —
+each of them inside a comment or a docstring, neither of which the program
+branches on; the proof compares the two syntax trees with the docstrings set
+aside, so a changed docstring changes `__doc__` and nothing the program computes
+— nothing in those files was changed.
+
+The copied files:
+
+    zeknop_example/canonicalization/canonical.py
+    zeknop_example/canonicalization/free_form.py
+    zeknop_example/canonicalization/mime_walk.py
+    zeknop_example/canonicalization/single_byte.py
+    zeknop_example/canonicalization/multi_byte.py
+    zeknop_example/canonicalization/sig_alg.py
+    zeknop_example/canonicalization/message_fields.py
+
+Six of those seven are whole files of the reference implementation.
+`message_fields.py` is not: it is five functions of one file of it — the
+canonical `From`, the canonical recipients and the text of a Shape A message,
+with the two helpers those three use — gathered into a module of their own, and
+it is those five functions that were compared, one by one.
+
+`single_byte.py` and `multi_byte.py` are generated from the index data of the
+WHATWG Encoding Standard (https://encoding.spec.whatwg.org/), and `free_form.py`
+from Unicode character data; each of those files names its own sources in its
+header.
+
+Where a comment in the copied files says something was measured — a time, a
+memory peak, how two readers disagreed — the measurement is the publisher's,
+made while the reference implementation was written, and its evidence is not
+part of this package. Those numbers say why a line of code has the shape it has;
+they are not a claim about how fast this example is. Where a comment says a
+property is held by a test or a gate, that test is the publisher's too.
+
+That the copy answers what the reference implementation answers is not a promise
+made here: the `conformance` command runs it over every vector the preview
+publishes, and `../../vectors/CONFORMANCE.md` says what a matching report means and
+what it does not.
+
+Everything else in this directory is written for this example.

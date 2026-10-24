@@ -1,0 +1,330 @@
+/*
+  Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
+           https://creativecommons.org/licenses/by/4.0/
+  Publisher: Zeknod OÜ
+  Part of: the ZEKNOP Signed Email specification, Developer Preview
+  Date: 2026-10-23
+
+  No import, no url(), no font file: the page loads nothing from outside itself.
+  Typefaces are whatever the reader's system has.
+*/
+
+:root {
+  color-scheme: light dark;
+
+  --bg: #ffffff;
+  --bg-soft: #f4f5f7;
+  --bg-code: #eff0f3;
+  --fg: #1a1c20;
+  --fg-soft: #4c525c;
+  --rule: #d8dbe0;
+  --accent: #1e3a8a;
+  --link: #1b3f8f;
+  --link-visited: #5b3a8f;
+  --label-bg: #fdf6e3;
+  --label-rule: #a9772a;
+  --label-fg: #4b3408;
+  --focus: #0b5fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171b;
+    --bg-soft: #1d2026;
+    --bg-code: #23272e;
+    --fg: #e7e9ee;
+    --fg-soft: #b2b8c2;
+    --rule: #343943;
+    --accent: #9db4ec;
+    --link: #a8c2f2;
+    --link-visited: #ccb2ee;
+    --label-bg: #2a2416;
+    --label-rule: #c99a44;
+    --label-fg: #f0dfbc;
+    --focus: #7fa8ff;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0 16px 4rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+    "Times New Roman", serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+}
+
+/* One measure for everything, so the page reads as one column. */
+.masthead,
+main,
+footer {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+/* --- links ------------------------------------------------------------- */
+
+a {
+  color: var(--link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+a:visited {
+  color: var(--link-visited);
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+}
+
+.skip-link:focus {
+  position: static;
+  display: inline-block;
+  margin: 0.75rem 0;
+  padding: 0.35rem 0.6rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+/* --- masthead ---------------------------------------------------------- */
+
+.masthead {
+  padding: 3rem 0 0;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 0.8125rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+
+h1 {
+  margin: 0.35rem 0 1.25rem;
+  font-size: clamp(2rem, 7vw, 2.85rem);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.label {
+  margin: 0 0 1.5rem;
+  padding: 0.85rem 1rem;
+  background: var(--label-bg);
+  color: var(--label-fg);
+  border: 1px solid var(--label-rule);
+  border-left-width: 5px;
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.lede {
+  margin: 0 0 1rem;
+  font-size: 1.1875rem;
+  line-height: 1.55;
+  color: var(--fg-soft);
+}
+
+/* --- sections ---------------------------------------------------------- */
+
+main {
+  padding-top: 1rem;
+}
+
+section {
+  margin: 0 0 3rem;
+}
+
+h2 {
+  margin: 0 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 1.5rem;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1.1875rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+.note {
+  color: var(--fg-soft);
+  font-size: 0.9375rem;
+}
+
+/* --- lists ------------------------------------------------------------- */
+
+ul.plain,
+ul.links {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+ul.plain li,
+ul.links li,
+ol.steps li {
+  margin-bottom: 0.6rem;
+}
+
+ul.links {
+  padding-left: 1.1rem;
+  font-size: 0.9375rem;
+}
+
+/* --- the sandbox announcement ---------------------------------------- */
+
+dl.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+}
+
+dl.facts dt {
+  font-weight: 600;
+}
+
+dl.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 36rem) {
+  dl.facts {
+    grid-template-columns: 1fr;
+  }
+
+  dl.facts dd {
+    margin-bottom: 0.4rem;
+  }
+}
+
+ol.steps {
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+/* --- cards ------------------------------------------------------------- */
+
+.card {
+  margin: 0 0 1.5rem;
+  padding: 1.25rem 1.25rem 0.75rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+
+.card > :last-child {
+  margin-bottom: 0.5rem;
+}
+
+.meta {
+  margin: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+  color: var(--fg-soft);
+  font-size: 0.875rem;
+}
+
+/* --- code -------------------------------------------------------------- */
+
+code {
+  padding: 0.1em 0.3em;
+  background: var(--bg-code);
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 0.875em;
+  /* A long path must wrap rather than widen the page on a phone. */
+  overflow-wrap: anywhere;
+}
+
+a code {
+  color: inherit;
+}
+
+/* --- footer ------------------------------------------------------------ */
+
+footer {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+  color: var(--fg-soft);
+  font-size: 0.875rem;
+}
+
+footer p {
+  margin: 0 0 0.35rem;
+}
+
+/* --- wider screens ----------------------------------------------------- */
+
+@media (min-width: 40rem) {
+  body {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .card {
+    padding: 1.5rem 1.75rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media print {
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .card,
+  .label {
+    background: transparent;
+  }
+}

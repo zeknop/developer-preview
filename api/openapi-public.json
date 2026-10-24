@@ -1,0 +1,2087 @@
+{
+  "components": {
+    "schemas": {
+      "ActivateRequest": {
+        "description": "An activation code: four groups of four characters from A-Z and 0-9.",
+        "properties": {
+          "code": {
+            "pattern": "^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$",
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "ActivateRequest",
+        "type": "object"
+      },
+      "ActivateResponse": {
+        "description": "The identity and the credentials a redeemed activation code yields.",
+        "properties": {
+          "api_key": {
+            "title": "Api Key",
+            "type": "string"
+          },
+          "public_key": {
+            "title": "Public Key",
+            "type": "string"
+          },
+          "uuid": {
+            "title": "Uuid",
+            "type": "string"
+          },
+          "verification_level": {
+            "title": "Verification Level",
+            "type": "string"
+          },
+          "verification_type": {
+            "title": "Verification Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid",
+          "api_key",
+          "public_key",
+          "verification_type",
+          "verification_level"
+        ],
+        "title": "ActivateResponse",
+        "type": "object"
+      },
+      "AttachmentMeta": {
+        "description": "One attachment of the message as the signer describes it: the hash of the file name, the hash of the decoded bytes, their size, and the declared media type.",
+        "properties": {
+          "filename": {
+            "description": "The hash of the attachment's file NAME, not the name: 64 lowercase hex digits of SHA-256 over the UTF-8 bytes of the name after trimming, with the fallback `unnamed` for an empty name, and lower-cased by the client. An optional `sha256:` prefix is accepted. A file name is content about the message (see `../spec/signature-input.md` §7 in this package), so a value that is not 64 lowercase hex digits is refused with 422. A name that is ITSELF 64 lowercase hex digits is the one shape this cannot be told apart from a hash.",
+            "maxLength": 255,
+            "title": "Filename",
+            "type": "string"
+          },
+          "hash": {
+            "description": "SHA-256 over the DECODED bytes of the attachment, standard base64: 43 characters of the alphabet and one `=`. Any other shape is refused with 422.",
+            "title": "Hash",
+            "type": "string"
+          },
+          "mime": {
+            "maxLength": 127,
+            "title": "Mime",
+            "type": "string"
+          },
+          "size": {
+            "description": "The size in bytes of those decoded bytes, as the signer counted them. Greater than zero.",
+            "exclusiveMinimum": 0.0,
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename",
+          "hash",
+          "size",
+          "mime"
+        ],
+        "title": "AttachmentMeta",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "description": "A refusal: a short machine-readable `error`, a `message` written for a person, and optional `details`.",
+        "properties": {
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "error": {
+            "title": "Error",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "message"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "ForwardCheckItem": {
+        "additionalProperties": false,
+        "description": "One row of the forwarded-copy listing: when the copy arrived, what it was answered, and whether it was a plain forward or an attached message. Nothing else — no hash, and not who forwarded it.",
+        "properties": {
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "`null` on an ordinary row. `attachment_signature_invalid` and `attachment_identity_not_active` are written on a row that was sent AS an attached message and could not be read as one — the row is kept so the sender finds their forward in the list, but it is recorded as a plain copy and its verdict is the text comparison and not a signature check. A reader that marks a row as verified checks this field: a row of kind `attachment` that carries either value was not verified.",
+            "title": "Note"
+          },
+          "received_at": {
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          },
+          "verdict": {
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "received_at",
+          "verdict",
+          "kind"
+        ],
+        "title": "ForwardCheckItem",
+        "type": "object"
+      },
+      "ForwardChecksResponse": {
+        "additionalProperties": false,
+        "description": "Every forwarded copy received for one envelope id inside the listing window.",
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/ForwardCheckItem"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "identity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForwardIdentity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "retention_days": {
+            "title": "Retention Days",
+            "type": "integer"
+          },
+          "service_misconfigured": {
+            "default": false,
+            "title": "Service Misconfigured",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "checks",
+          "reason",
+          "days",
+          "retention_days"
+        ],
+        "title": "ForwardChecksResponse",
+        "type": "object"
+      },
+      "ForwardIdentity": {
+        "additionalProperties": false,
+        "description": "Who signed the message, in the words a page prints: the mailbox, or the domain.",
+        "properties": {
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "uuid": {
+            "title": "Uuid",
+            "type": "string"
+          },
+          "verification_level": {
+            "title": "Verification Level",
+            "type": "string"
+          },
+          "verification_type": {
+            "title": "Verification Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid",
+          "verification_level",
+          "verification_type",
+          "status"
+        ],
+        "title": "ForwardIdentity",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "description": "The body of a 422: which parts of the request were refused, and why.",
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "MailboxRegisterRequest": {
+        "description": "The address a mailbox registration is started for.",
+        "properties": {
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "MailboxRegisterRequest",
+        "type": "object"
+      },
+      "MailboxRegisterResponse": {
+        "description": "The polling token and the request code of a started mailbox registration. No credentials.",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "polling_token": {
+            "title": "Polling Token",
+            "type": "string"
+          },
+          "request_code": {
+            "title": "Request Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "email",
+          "polling_token",
+          "request_code"
+        ],
+        "title": "MailboxRegisterResponse",
+        "type": "object"
+      },
+      "MailboxStatusResponse": {
+        "description": "The state of a mailbox registration, and — once it is confirmed, once — its credentials.",
+        "properties": {
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "public_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Key"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "uuid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uuid"
+          },
+          "verification_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verification Level"
+          },
+          "verification_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verification Type"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "MailboxStatusResponse",
+        "type": "object"
+      },
+      "RegisterRequest": {
+        "description": "A registration: which way the identity is to be proved, and the material that way needs.",
+        "properties": {
+          "dns_challenge_response": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dns Challenge Response"
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain"
+          },
+          "verification_level": {
+            "pattern": "^(personal|domain)$",
+            "title": "Verification Level",
+            "type": "string"
+          },
+          "verification_type": {
+            "pattern": "^(bankid|dns_txt|http_file|domain_manual|eidas)$",
+            "title": "Verification Type",
+            "type": "string"
+          },
+          "verifier_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verifier Token"
+          }
+        },
+        "required": [
+          "verification_type",
+          "verification_level"
+        ],
+        "title": "RegisterRequest",
+        "type": "object"
+      },
+      "RegisterResponse": {
+        "description": "The result of a registration: the identity, and either its credentials or the challenge that is still to be published.",
+        "properties": {
+          "api_key": {
+            "title": "Api Key",
+            "type": "string"
+          },
+          "dns_challenge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dns Challenge"
+          },
+          "http_challenge_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Http Challenge Url"
+          },
+          "public_key": {
+            "title": "Public Key",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "uuid": {
+            "title": "Uuid",
+            "type": "string"
+          },
+          "verification_level": {
+            "title": "Verification Level",
+            "type": "string"
+          },
+          "verification_type": {
+            "title": "Verification Type",
+            "type": "string"
+          },
+          "verified_at": {
+            "format": "date-time",
+            "title": "Verified At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid",
+          "public_key",
+          "api_key",
+          "verification_type",
+          "verification_level",
+          "verified_at",
+          "status"
+        ],
+        "title": "RegisterResponse",
+        "type": "object"
+      },
+      "SignRequest": {
+        "description": "What a signer asks the relay to sign: the identity, the hashes of the message, the time, and the rules the signature is to be made under.",
+        "properties": {
+          "alg": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alg"
+          },
+          "attachments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AttachmentMeta"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The attachment metadata of the message, at most 50 entries; omitted for a message with no attachment. The metadata is part of what is signed.",
+            "title": "Attachments"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "free_hash": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Hash"
+          },
+          "from_address": {
+            "description": "The `From` address the message will carry. The relay signs only for an identity the address belongs to — the exact address for a mailbox identity, any address at the domain for a domain identity — and answers 403 otherwise.",
+            "maxLength": 512,
+            "title": "From Address",
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "uuid": {
+            "title": "Uuid",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "uuid",
+          "content_hash",
+          "timestamp",
+          "from_address"
+        ],
+        "title": "SignRequest",
+        "type": "object"
+      },
+      "SignResponse": {
+        "description": "The signature, the envelope id that goes into the visible envelope, the relay and the moment it signed, and the rules the signature was made under.",
+        "properties": {
+          "alg": {
+            "default": "ed25519",
+            "title": "Alg",
+            "type": "string"
+          },
+          "envelope_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Envelope Id"
+          },
+          "relay_id": {
+            "title": "Relay Id",
+            "type": "string"
+          },
+          "relay_timestamp": {
+            "format": "date-time",
+            "title": "Relay Timestamp",
+            "type": "string"
+          },
+          "signature": {
+            "title": "Signature",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "signature",
+          "relay_id",
+          "relay_timestamp"
+        ],
+        "title": "SignResponse",
+        "type": "object"
+      },
+      "SignatureLookupResponse": {
+        "additionalProperties": false,
+        "description": "What an envelope id says publicly: which identity signed it, and when. No field of it is a fingerprint of the message.",
+        "properties": {
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "relay_id": {
+            "title": "Relay Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "uuid": {
+            "title": "Uuid",
+            "type": "string"
+          },
+          "verification_level": {
+            "title": "Verification Level",
+            "type": "string"
+          },
+          "verification_type": {
+            "title": "Verification Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid",
+          "timestamp",
+          "relay_id",
+          "verification_level",
+          "verification_type",
+          "status"
+        ],
+        "title": "SignatureLookupResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "description": "One refused part of a request: where it was, what was wrong with it, and the kind of error.",
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VerifyDomainRequest": {
+        "description": "The identity whose domain challenge is to be checked.",
+        "properties": {
+          "uuid": {
+            "title": "Uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid"
+        ],
+        "title": "VerifyDomainRequest",
+        "type": "object"
+      },
+      "VerifyDomainResponse": {
+        "description": "Whether the domain challenge was found, by which method, and what the identity state is afterwards.",
+        "properties": {
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "uuid": {
+            "title": "Uuid",
+            "type": "string"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "uuid",
+          "domain",
+          "verified",
+          "status",
+          "method",
+          "message"
+        ],
+        "title": "VerifyDomainResponse",
+        "type": "object"
+      },
+      "VerifyRequest": {
+        "description": "The verification question: the identity, the signature, the hashes of the message, and the rules the message says it was signed under.",
+        "properties": {
+          "alg": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alg"
+          },
+          "free_hash": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Hash"
+          },
+          "message_hash": {
+            "maxLength": 100,
+            "title": "Message Hash",
+            "type": "string"
+          },
+          "proxy_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Reserved for the operator's own infrastructure. A third-party caller leaves it unset.",
+            "title": "Proxy Secret"
+          },
+          "signature": {
+            "maxLength": 200,
+            "title": "Signature",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Reserved for the operator's own infrastructure. A third-party caller leaves it unset.",
+            "title": "Source"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "understands": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The newest signature-input version THIS caller can build, which is not the version the message announces. A caller that sends no `version` and asks about a signature the relay recorded under a version it does not name here is refused with 409 instead of being told the message is invalid.",
+            "title": "Understands"
+          },
+          "uuid": {
+            "maxLength": 36,
+            "title": "Uuid",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "uuid",
+          "signature",
+          "message_hash",
+          "timestamp"
+        ],
+        "title": "VerifyRequest",
+        "type": "object"
+      },
+      "VerifyResponse": {
+        "description": "The answer of BOTH verification routes, which do not check the same thing. On `POST /v1/verify` `valid` says the signature holds and the identity is active, and a negative answer names in `reason` which kind of no it is. On `GET /v1/verify/{identity_uuid}` nothing is checked against a signature: `valid` says only that the identity is active, and `reason` is never set there.",
+        "properties": {
+          "alg": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alg"
+          },
+          "algorithms": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Algorithms"
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "keys": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keys"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "org_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Org Id"
+          },
+          "org_id_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Org Id Type"
+          },
+          "org_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Org Name"
+          },
+          "org_verification_level": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Org Verification Level"
+          },
+          "org_verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Org Verified At"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "uuid": {
+            "title": "Uuid",
+            "type": "string"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          },
+          "verification_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verification Level"
+          },
+          "verification_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verification Type"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          }
+        },
+        "required": [
+          "valid",
+          "uuid"
+        ],
+        "title": "VerifyResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "The paths a third-party client needs in order to sign a message through a ZEKNOP relay or to check a signature it received, plus the paths the verification portal reaches without a credential. The rest of the relay's surface — administration, billing, tenant configuration, the keys of a mail server, revocation and erasure — is not part of this document and is not part of what this preview describes.\n\nThis file is generated from the relay's own schema and filtered to those paths; it is not written or edited by hand. `README.md` beside it carries the semantics a schema cannot state, and `API-CHANGELOG.md` what changed for a caller.\n\nDeveloper Preview: the protocol and the API may change; nothing here is a security guarantee.\n\nNo server is listed on purpose: the base URL is the relay you were given.",
+    "license": {
+      "name": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    "summary": "The part of the ZEKNOP relay's HTTP contract a third-party client uses.",
+    "title": "ZEKNOP relay — public API (Developer Preview)",
+    "version": "1.8",
+    "x-publisher": "Zeknod OÜ"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "200 with a body naming the state of each datastore the relay cannot serve a request without, and 503 when one of them is unreachable, so an orchestrator can act on the status code alone.\n\nIt is outside `/v1`, it carries no contract number, and a client must not read a version or a capability out of it: `GET /v1/capabilities` is the answer a signer acts on, and it stays readable when a datastore is down.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Whether this relay can serve requests",
+        "tags": [
+          "Service"
+        ]
+      }
+    },
+    "/v1/activate": {
+      "post": {
+        "description": "A deployment that onboards by invitation hands out a code out of band; redeeming it answers with the uuid, the API key and the public key. Single use.\n\nA code the relay does not hold, a code already redeemed, and a code past its expiry are answered identically on every attempt: 404 while no attempt budget is spent, 429 on the attempt that spends one. No answer tells a caller which of its guesses was once a real code. 503 means the attempt budget could not be read, so the code was not looked up at all.",
+        "operationId": "activate_v1_activate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Redeem an activation code",
+        "tags": [
+          "Registration"
+        ]
+      }
+    },
+    "/v1/capabilities": {
+      "get": {
+        "description": "The question a signer asks before it writes a version into a message. `signs` and `verifies` are the versions of the signature input this build can construct, oldest first; `signature_input_version` is the newest of them; `contract` is the number of this HTTP contract and `relay_id` names the relay that answered.\n\nNo credential, no rate limit of its own, and neither datastore is read: what a build can sign is a property of the build and not of the moment.\n\nA relay from before this route answers 404. A client of this contract reads anything other than a 200 whose body is a JSON object with a list of strings in `signs` as **this relay cannot sign that version**, and does not write the version into a message.",
+        "operationId": "capabilities_v1_capabilities_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Which signature-input versions this relay signs and verifies",
+        "tags": [
+          "Capabilities"
+        ]
+      }
+    },
+    "/v1/forward-checks/{envelope_id}": {
+      "get": {
+        "description": "Every forwarded copy the deployment's checking service received for that envelope id inside the listing window, each row with the time it arrived, the verdict it was given, and whether it arrived as a plain forward or as an attached message. Never a hash, never any text of a copy, and never who forwarded it.\n\nThe answer also carries the `identity` block — `uuid`, `domain`, `email`, verification level and type, state — whenever this relay holds a signature for that envelope id, INCLUDING when the list of copies is empty. It is the same identity `GET /v1/signature/{envelope_id}` answers, by the same key and with no credential either.\n\nThe whole list is answered and not the latest row, so a copy somebody else pushed in is one more row and never a verdict that replaces another. No credential, rate limited per caller address.\n\n`service_misconfigured: true` is a statement about the deployment's own checking service and not about the envelope id in the path: it is the same answer for every id while it lasts, and it carries no row and no identity.",
+        "operationId": "forward_checks_v1_forward_checks__envelope_id__get",
+        "parameters": [
+          {
+            "description": "The envelope id out of the visible envelope of the message: exactly 8 alphanumeric characters.",
+            "in": "path",
+            "name": "envelope_id",
+            "required": true,
+            "schema": {
+              "description": "The envelope id out of the visible envelope of the message: exactly 8 alphanumeric characters.",
+              "title": "Envelope Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional: the date the forwarded copy itself claims. It only decides which empty answer an unknown envelope id gets — `past_retention` for a copy older than the listing window, `unknown_code` otherwise — because past the window the record is deleted and nothing is kept in its place.",
+            "in": "query",
+            "name": "sent_at",
+            "required": false,
+            "schema": {
+              "description": "Optional: the date the forwarded copy itself claims. It only decides which empty answer an unknown envelope id gets — `past_retention` for a copy older than the listing window, `unknown_code` otherwise — because past the window the record is deleted and nothing is kept in its place.",
+              "format": "date-time",
+              "title": "Sent At",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForwardChecksResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "The forwarded copies received for one envelope id",
+        "tags": [
+          "Verification"
+        ]
+      }
+    },
+    "/v1/register": {
+      "post": {
+        "description": "Which way the identity is to be proved decides what happens: `dns_txt` and `domain_manual` register a domain and answer with the challenge to publish, after which `POST /v1/register/verify-domain` activates the identity; the ways that rest on an external identity provider carry that provider's token.\n\nA deployment may not offer every way: one it does not implement is refused with 501. Three codes this route answers are not declared below — 403 when the deployment keeps registration to invited callers and this caller is not one, 409 when that domain is already registered on this relay, and 503 when the store the attempt budgets live in could not be read, in which case nothing was registered and the request may be retried.",
+        "operationId": "register_v1_register_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Implemented"
+          }
+        },
+        "summary": "Start a registration",
+        "tags": [
+          "Registration"
+        ]
+      }
+    },
+    "/v1/register/mailbox": {
+      "post": {
+        "description": "A link is sent to the address. The answer carries a polling token and a request code, and no credentials: the page behind the link asks for that code, and an API key exists only once the link has been confirmed with it.\n\nThe answer is the same for every address the deployment lets through — in status, in body and in time — whether or not the address already has a registration or a request in progress, because the handler does the same work for every such address (the two rate limits, one polling session, one request code, one queued task) and leaves the lookup, the pending registration, the link and the mail to a task that runs after the answer has been sent. The publisher measures the half about time against a running relay whose mail server holds every conversation open; that test is not part of this package. An address that is already registered gets no mail.",
+        "operationId": "register_mailbox_v1_register_mailbox_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MailboxRegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxRegisterResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Start a mailbox registration (magic link)",
+        "tags": [
+          "Registration"
+        ]
+      }
+    },
+    "/v1/register/mailbox/status": {
+      "get": {
+        "description": "Polled with the token from `POST /v1/register/mailbox`. `pending` until the link of that request is confirmed with its request code, then `verified` with the uuid, the API key and the public key — once. Afterwards, and after the token expires, 404.",
+        "operationId": "mailbox_status_v1_register_mailbox_status_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Collect the credentials of a confirmed mailbox registration",
+        "tags": [
+          "Registration"
+        ]
+      }
+    },
+    "/v1/register/verify-domain": {
+      "post": {
+        "description": "Asked after a domain registration. The relay looks for a DNS TXT record at `_zeknop.<domain>` whose value is `zeknop-verify=<uuid>`, and for the file `/.well-known/zeknop-verify.txt` on `https://<domain>` containing the uuid. Either is enough; the answer says which method was found and what the identity state is afterwards.",
+        "operationId": "verify_domain_v1_register_verify_domain_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyDomainRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyDomainResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Check a domain challenge and activate the identity",
+        "tags": [
+          "Registration"
+        ]
+      }
+    },
+    "/v1/register/verify-mailbox/confirm": {
+      "post": {
+        "description": "The body is `{\"token\", \"code\"}` as JSON, or the form of the page above.\n\nThe code is compared in constant time. An entry that is not of the code's shape is refused without counting against the link; every well-formed wrong entry counts, and after a fixed number of them the link is withdrawn. With the right code the link is spent, the identity becomes active in one transaction that also removes the other pending registrations of that address, and the credentials are left for the polling session of THAT registration only — this answer itself carries no credentials.",
+        "operationId": "confirm_mailbox_v1_register_verify_mailbox_confirm_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Confirm a mailbox link with its request code",
+        "tags": [
+          "Registration"
+        ]
+      }
+    },
+    "/v1/register/verify-mailbox/{token}": {
+      "get": {
+        "description": "Opened from the mail. It changes nothing — mail scanners follow links — and asks for the request code that the client which started the registration showed; its form posts to `POST /v1/register/verify-mailbox/confirm`. A client that asks for JSON is told the same thing in JSON.",
+        "operationId": "verify_mailbox_v1_register_verify_mailbox__token__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The page the magic link opens",
+        "tags": [
+          "Registration"
+        ]
+      }
+    },
+    "/v1/sign": {
+      "post": {
+        "description": "The signer sends the identity, the hashes of the message it is about to send, the time, and the version and algorithm it signs under; the answer carries the signature, the envelope id that goes into the visible envelope, the relay and the moment it signed, and the version and algorithm the signature was made under.\n\nAuthenticated with the identity's API key in `X-API-Key`. The timestamp must be within 30 seconds of the relay's clock. The relay builds the signed bytes itself from the version and the algorithm it was given — it never signs bytes a caller handed it.\n\nThe optional header `Idempotency-Key` (64 lowercase hex characters) names the request: a repeat under the same name and the same identity, inside the deployment's idempotency window (24 hours by default), is answered with the same signature and the same envelope id, and nothing is signed a second time. A malformed value is refused with 400 rather than ignored.\n\nBeyond the codes declared below this route also answers **403** — the key is good and the relay will still not sign: the identity is not active, or the `From` address is not one that identity may send as, or the deployment's own policy does not let it sign. The README beside this file lists every such undeclared code.",
+        "operationId": "sign_v1_sign_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-API-Key",
+            "required": true,
+            "schema": {
+              "title": "X-Api-Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Sign the hashes of a message for a registered identity",
+        "tags": [
+          "Signing"
+        ]
+      }
+    },
+    "/v1/signature/{envelope_id}": {
+      "get": {
+        "description": "The envelope id is printed in the visible envelope of every signed message, so anyone holding a forwarded copy — or a photograph of one — can ask this. The answer is the identity that signed and the moment it was signed: its `uuid`, its `domain` and its `email`, which for a mailbox identity is the registered address. That is the design and not an oversight — choose which identity you sign with knowing that whoever holds a copy can read it.\n\nIt carries no hash, no signature and no attachment metadata: each of those would confirm a guess about what the message said, and the public keys are published beside them.\n\nThe id is exactly 8 alphanumeric characters; anything else is 400. No credential, and the route is rate limited per caller address.",
+        "operationId": "lookup_signature_v1_signature__envelope_id__get",
+        "parameters": [
+          {
+            "description": "The envelope id out of the visible envelope of the message: exactly 8 alphanumeric characters. Anything else is 400.",
+            "in": "path",
+            "name": "envelope_id",
+            "required": true,
+            "schema": {
+              "description": "The envelope id out of the visible envelope of the message: exactly 8 alphanumeric characters. Anything else is 400.",
+              "title": "Envelope Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignatureLookupResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Who signed the message with this envelope id, and when",
+        "tags": [
+          "Verification"
+        ]
+      }
+    },
+    "/v1/verify": {
+      "post": {
+        "description": "The verification question: an identity, a signature, the hashes of the message and the version and algorithm the message announces. No credential.\n\n`valid: true` says the signature holds and the identity is active. Every `valid: false` answer carries `reason`, one word for WHICH kind of no it is, and `signature-mismatch` is the only one that is a statement about the message. A request that names no `version` is read as a question about a message from before version 1.4 of the signature input.\n\nBeyond the codes declared below this route also answers **409** — a caller older than the signature it asks about, refused rather than told the message is invalid — and **503** when the store the replay mark lives in cannot be read.\n\nThe README beside this file says what the relay does with a repeated question, which answers a caller may deliver on, which it must treat as an outage, and which codes every path answers without declaring them here.",
+        "operationId": "verify_signature_v1_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify a signature against the hashes of a message",
+        "tags": [
+          "Verification"
+        ]
+      }
+    },
+    "/v1/verify/{identity_uuid}": {
+      "get": {
+        "description": "The registration state of one identity and every public key it has had, each with its algorithm and the window it was valid in, so a message older than the last key re-issue can be checked by someone who does not want to take this relay's word for it. No credential; 404 for an identity this relay has no record of, and — not declared below — 400 when the path carries something that is not a uuid at all.\n\nIt checks no signature, so `valid` here says only that the identity is active and `reason` is never set. `POST /v1/verify` is the route that checks one.",
+        "operationId": "verify_by_uuid_v1_verify__identity_uuid__get",
+        "parameters": [
+          {
+            "description": "The identity to read, as it is printed in the visible envelope and as `POST /v1/verify` takes it.",
+            "in": "path",
+            "name": "identity_uuid",
+            "required": true,
+            "schema": {
+              "description": "The identity to read, as it is printed in the visible envelope and as `POST /v1/verify` takes it.",
+              "title": "Identity Uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What this relay holds about one identity",
+        "tags": [
+          "Verification"
+        ]
+      }
+    }
+  }
+}

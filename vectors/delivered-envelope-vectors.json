@@ -1,0 +1,348 @@
+{
+  "version": "1.0",
+  "specification": "delivered-envelope.md v1.4",
+  "reference": "spec/delivered-envelope.md",
+  "generated_at": "2026-09-17",
+  "generated_by": "Literal texts of spec/delivered-envelope.md §3 and §7, rendered by a stand-alone script; no implementation involved",
+  "notes": {
+    "build": "Each implementation's builder called with input (inner, envelope_id, verify_url, eol) must return expected.text exactly; utf8_base64 is the same text as UTF-8 bytes.",
+    "strip": "Each verifier's outer-envelope removal (§6.1) applied to delivered must return expected exactly; expected_kind is the outer envelope it recognises (null: none complete).",
+    "build_html": "§3.3.1: each signer's HTML builder called with input (inner, envelope_id, verify_url, eol) must return expected.text exactly. `inner` is the sender's HTML part; the head block goes after a leading DOCTYPE, the tail block after the last byte.",
+    "strip_html": "§6.1 (the HTML rule): each verifier's removal applied to delivered must return expected exactly; expected_kind is the outer block it recognises (null: none at the two ends)."
+  },
+  "html_style": "display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important",
+  "build": [
+    {
+      "id": "build-positive-001-lf",
+      "kind": "positive",
+      "input": {
+        "inner": "Amount due: 100 EUR\nPlease pay by Friday.",
+        "envelope_id": "Ab12Cd34",
+        "verify_url": "https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0",
+        "eol": "\n"
+      },
+      "expected": {
+        "text": "======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\n",
+        "utf8_base64": "PT09PT09PSBaRUtOT1AgPT09PT09PQpNZXNzYWdlIElEOiBBYjEyQ2QzNApWZXJpZnk6IGh0dHBzOi8vdmVyaWZ5Lnpla25vcC5vcmcvdjEvZXlKemFXZHVZWFIxY21VaU9pSjRJbjAKCkFtb3VudCBkdWU6IDEwMCBFVVIKUGxlYXNlIHBheSBieSBGcmlkYXkuCgo9PT09PT09IEVORCBaRUtOT1AgPT09PT09PQpUZXh0IG91dHNpZGUgdGhlc2UgbWFya2VycyBpcyBub3QgY292ZXJlZCBieSB0aGUgc2lnbmF0dXJlLiBaRUtOT1AgbmV2ZXIgY29uZmlybXMgYXV0aGVudGljaXR5IGJ5IHRleHQgaW5zaWRlIGEgbWVzc2FnZS4K"
+      }
+    },
+    {
+      "id": "build-positive-002-crlf-non-ascii-content",
+      "kind": "positive",
+      "input": {
+        "inner": "Faktura č. 2026-09\r\nSplatnost: pátek\r\n\r\nDěkujeme.",
+        "envelope_id": "Ab12Cd34",
+        "verify_url": "https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0",
+        "eol": "\r\n"
+      },
+      "expected": {
+        "text": "======= ZEKNOP =======\r\nMessage ID: Ab12Cd34\r\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\r\n\r\nFaktura č. 2026-09\r\nSplatnost: pátek\r\n\r\nDěkujeme.\r\n\r\n======= END ZEKNOP =======\r\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\r\n",
+        "utf8_base64": "PT09PT09PSBaRUtOT1AgPT09PT09PQ0KTWVzc2FnZSBJRDogQWIxMkNkMzQNClZlcmlmeTogaHR0cHM6Ly92ZXJpZnkuemVrbm9wLm9yZy92MS9leUp6YVdkdVlYUjFjbVVpT2lKNEluMA0KDQpGYWt0dXJhIMSNLiAyMDI2LTA5DQpTcGxhdG5vc3Q6IHDDoXRlaw0KDQpExJtrdWplbWUuDQoNCj09PT09PT0gRU5EIFpFS05PUCA9PT09PT09DQpUZXh0IG91dHNpZGUgdGhlc2UgbWFya2VycyBpcyBub3QgY292ZXJlZCBieSB0aGUgc2lnbmF0dXJlLiBaRUtOT1AgbmV2ZXIgY29uZmlybXMgYXV0aGVudGljaXR5IGJ5IHRleHQgaW5zaWRlIGEgbWVzc2FnZS4NCg=="
+      }
+    },
+    {
+      "id": "build-not-verified-001-lf",
+      "kind": "not-verified",
+      "input": {
+        "inner": "Amount due: 100 EUR\nPlease pay by Friday.",
+        "eol": "\n"
+      },
+      "expected": {
+        "text": "------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n------- END ZEKNOP NOTICE -------\n",
+        "utf8_base64": "LS0tLS0tLSBaRUtOT1AgTk9USUNFOiBTRU5ERVIgTk9UIFZFUklGSUVEIC0tLS0tLS0KVGhpcyBtZXNzYWdlIHBhc3NlZCB0aHJvdWdoIGEgWkVLTk9QIHNpZ25pbmcgc2VydmljZSBidXQgY291bGQgbm90IGJlIHNpZ25lZC4KVHJlYXQgaXQgYXMgb3JkaW5hcnksIHVudmVyaWZpZWQgZS1tYWlsLiBUbyBjaGVjayBhbnkgWkVLTk9QIG1lc3NhZ2UsIG9wZW4gdmVyaWZ5Lnpla25vcC5vcmcgeW91cnNlbGYgYW5kIHBhc3RlIHRoZSBtZXNzYWdlLgoKQW1vdW50IGR1ZTogMTAwIEVVUgpQbGVhc2UgcGF5IGJ5IEZyaWRheS4KCi0tLS0tLS0gRU5EIFpFS05PUCBOT1RJQ0UgLS0tLS0tLQo="
+      }
+    },
+    {
+      "id": "build-not-verified-002-crlf-non-ascii-content",
+      "kind": "not-verified",
+      "input": {
+        "inner": "Faktura č. 2026-09\r\nSplatnost: pátek\r\n\r\nDěkujeme.",
+        "eol": "\r\n"
+      },
+      "expected": {
+        "text": "------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\r\nThis message passed through a ZEKNOP signing service but could not be signed.\r\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.\r\n\r\nFaktura č. 2026-09\r\nSplatnost: pátek\r\n\r\nDěkujeme.\r\n\r\n------- END ZEKNOP NOTICE -------\r\n",
+        "utf8_base64": "LS0tLS0tLSBaRUtOT1AgTk9USUNFOiBTRU5ERVIgTk9UIFZFUklGSUVEIC0tLS0tLS0NClRoaXMgbWVzc2FnZSBwYXNzZWQgdGhyb3VnaCBhIFpFS05PUCBzaWduaW5nIHNlcnZpY2UgYnV0IGNvdWxkIG5vdCBiZSBzaWduZWQuDQpUcmVhdCBpdCBhcyBvcmRpbmFyeSwgdW52ZXJpZmllZCBlLW1haWwuIFRvIGNoZWNrIGFueSBaRUtOT1AgbWVzc2FnZSwgb3BlbiB2ZXJpZnkuemVrbm9wLm9yZyB5b3Vyc2VsZiBhbmQgcGFzdGUgdGhlIG1lc3NhZ2UuDQoNCkZha3R1cmEgxI0uIDIwMjYtMDkNClNwbGF0bm9zdDogcMOhdGVrDQoNCkTEm2t1amVtZS4NCg0KLS0tLS0tLSBFTkQgWkVLTk9QIE5PVElDRSAtLS0tLS0tDQo="
+      }
+    }
+  ],
+  "build_html": [
+    {
+      "id": "build-html-positive-001-lf-doctype",
+      "kind": "positive",
+      "input": {
+        "inner": "<!DOCTYPE html>\n<html><head><title>Invoice</title></head>\n<body><p>Amount due: 100 EUR</p></body></html>\n",
+        "envelope_id": "Ab12Cd34",
+        "verify_url": "https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0",
+        "eol": "\n"
+      },
+      "note": "a document with a DOCTYPE: the head block is written AFTER it (§3.3.1), so the sender's document keeps the parsing mode it had",
+      "expected": {
+        "text": "<!DOCTYPE html>\n<!-- ======= ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\n<!-- ======= ZEKNOP ======= -->\n<html><head><title>Invoice</title></head>\n<body><p>Amount due: 100 EUR</p></body></html>\n<!-- ======= END ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.</div>\n<!-- ======= END ZEKNOP ======= -->\n",
+        "utf8_base64": "PCFET0NUWVBFIGh0bWw+CjwhLS0gPT09PT09PSBaRUtOT1AgPT09PT09PSAtLT4KPGRpdiBzdHlsZT0iZGlzcGxheTpibG9jayAhaW1wb3J0YW50O3Zpc2liaWxpdHk6dmlzaWJsZSAhaW1wb3J0YW50O29wYWNpdHk6MSAhaW1wb3J0YW50O3Bvc2l0aW9uOnN0YXRpYyAhaW1wb3J0YW50O3RyYW5zZm9ybTpub25lICFpbXBvcnRhbnQ7ZmlsdGVyOm5vbmUgIWltcG9ydGFudDtjbGlwOmF1dG8gIWltcG9ydGFudDtjbGlwLXBhdGg6bm9uZSAhaW1wb3J0YW50O2NvbnRlbnQtdmlzaWJpbGl0eTp2aXNpYmxlICFpbXBvcnRhbnQ7Zm9udC1zaXplOjEzcHggIWltcG9ydGFudDtsaW5lLWhlaWdodDoxLjQgIWltcG9ydGFudDtjb2xvcjojMDAwMDAwICFpbXBvcnRhbnQ7YmFja2dyb3VuZDojZmZmZmZmICFpbXBvcnRhbnQ7d2lkdGg6YXV0byAhaW1wb3J0YW50O2hlaWdodDphdXRvICFpbXBvcnRhbnQ7bWF4LWhlaWdodDpub25lICFpbXBvcnRhbnQ7b3ZlcmZsb3c6dmlzaWJsZSAhaW1wb3J0YW50O21hcmdpbjo4cHggMCAhaW1wb3J0YW50O3BhZGRpbmc6OHB4ICFpbXBvcnRhbnQ7dGV4dC1pbmRlbnQ6MCAhaW1wb3J0YW50O3otaW5kZXg6YXV0byAhaW1wb3J0YW50O3doaXRlLXNwYWNlOnByZS13cmFwICFpbXBvcnRhbnQ7Zm9udC1mYW1pbHk6bW9ub3NwYWNlICFpbXBvcnRhbnQiPj09PT09PT0gWkVLTk9QID09PT09PT0KTWVzc2FnZSBJRDogQWIxMkNkMzQKVmVyaWZ5OiBodHRwczovL3ZlcmlmeS56ZWtub3Aub3JnL3YxL2V5SnphV2R1WVhSMWNtVWlPaUo0SW4wPC9kaXY+CjwhLS0gPT09PT09PSBaRUtOT1AgPT09PT09PSAtLT4KPGh0bWw+PGhlYWQ+PHRpdGxlPkludm9pY2U8L3RpdGxlPjwvaGVhZD4KPGJvZHk+PHA+QW1vdW50IGR1ZTogMTAwIEVVUjwvcD48L2JvZHk+PC9odG1sPgo8IS0tID09PT09PT0gRU5EIFpFS05PUCA9PT09PT09IC0tPgo8ZGl2IHN0eWxlPSJkaXNwbGF5OmJsb2NrICFpbXBvcnRhbnQ7dmlzaWJpbGl0eTp2aXNpYmxlICFpbXBvcnRhbnQ7b3BhY2l0eToxICFpbXBvcnRhbnQ7cG9zaXRpb246c3RhdGljICFpbXBvcnRhbnQ7dHJhbnNmb3JtOm5vbmUgIWltcG9ydGFudDtmaWx0ZXI6bm9uZSAhaW1wb3J0YW50O2NsaXA6YXV0byAhaW1wb3J0YW50O2NsaXAtcGF0aDpub25lICFpbXBvcnRhbnQ7Y29udGVudC12aXNpYmlsaXR5OnZpc2libGUgIWltcG9ydGFudDtmb250LXNpemU6MTNweCAhaW1wb3J0YW50O2xpbmUtaGVpZ2h0OjEuNCAhaW1wb3J0YW50O2NvbG9yOiMwMDAwMDAgIWltcG9ydGFudDtiYWNrZ3JvdW5kOiNmZmZmZmYgIWltcG9ydGFudDt3aWR0aDphdXRvICFpbXBvcnRhbnQ7aGVpZ2h0OmF1dG8gIWltcG9ydGFudDttYXgtaGVpZ2h0Om5vbmUgIWltcG9ydGFudDtvdmVyZmxvdzp2aXNpYmxlICFpbXBvcnRhbnQ7bWFyZ2luOjhweCAwICFpbXBvcnRhbnQ7cGFkZGluZzo4cHggIWltcG9ydGFudDt0ZXh0LWluZGVudDowICFpbXBvcnRhbnQ7ei1pbmRleDphdXRvICFpbXBvcnRhbnQ7d2hpdGUtc3BhY2U6cHJlLXdyYXAgIWltcG9ydGFudDtmb250LWZhbWlseTptb25vc3BhY2UgIWltcG9ydGFudCI+PT09PT09PSBFTkQgWkVLTk9QID09PT09PT0KVGV4dCBvdXRzaWRlIHRoZXNlIG1hcmtlcnMgaXMgbm90IGNvdmVyZWQgYnkgdGhlIHNpZ25hdHVyZS4gWkVLTk9QIG5ldmVyIGNvbmZpcm1zIGF1dGhlbnRpY2l0eSBieSB0ZXh0IGluc2lkZSBhIG1lc3NhZ2UuPC9kaXY+CjwhLS0gPT09PT09PSBFTkQgWkVLTk9QID09PT09PT0gLS0+Cg=="
+      }
+    },
+    {
+      "id": "build-html-positive-002-crlf-no-doctype",
+      "kind": "positive",
+      "input": {
+        "inner": "<html>\r\n<body><p>Faktura č. 2026-09</p></body>\r\n</html>\r\n",
+        "envelope_id": "Ab12Cd34",
+        "verify_url": "https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0",
+        "eol": "\r\n"
+      },
+      "note": "no DOCTYPE: the head block is the first byte of the part",
+      "expected": {
+        "text": "<!-- ======= ZEKNOP ======= -->\r\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\r\nMessage ID: Ab12Cd34\r\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\r\n<!-- ======= ZEKNOP ======= -->\r\n<html>\r\n<body><p>Faktura č. 2026-09</p></body>\r\n</html>\r\n<!-- ======= END ZEKNOP ======= -->\r\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= END ZEKNOP =======\r\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.</div>\r\n<!-- ======= END ZEKNOP ======= -->\r\n",
+        "utf8_base64": "PCEtLSA9PT09PT09IFpFS05PUCA9PT09PT09IC0tPg0KPGRpdiBzdHlsZT0iZGlzcGxheTpibG9jayAhaW1wb3J0YW50O3Zpc2liaWxpdHk6dmlzaWJsZSAhaW1wb3J0YW50O29wYWNpdHk6MSAhaW1wb3J0YW50O3Bvc2l0aW9uOnN0YXRpYyAhaW1wb3J0YW50O3RyYW5zZm9ybTpub25lICFpbXBvcnRhbnQ7ZmlsdGVyOm5vbmUgIWltcG9ydGFudDtjbGlwOmF1dG8gIWltcG9ydGFudDtjbGlwLXBhdGg6bm9uZSAhaW1wb3J0YW50O2NvbnRlbnQtdmlzaWJpbGl0eTp2aXNpYmxlICFpbXBvcnRhbnQ7Zm9udC1zaXplOjEzcHggIWltcG9ydGFudDtsaW5lLWhlaWdodDoxLjQgIWltcG9ydGFudDtjb2xvcjojMDAwMDAwICFpbXBvcnRhbnQ7YmFja2dyb3VuZDojZmZmZmZmICFpbXBvcnRhbnQ7d2lkdGg6YXV0byAhaW1wb3J0YW50O2hlaWdodDphdXRvICFpbXBvcnRhbnQ7bWF4LWhlaWdodDpub25lICFpbXBvcnRhbnQ7b3ZlcmZsb3c6dmlzaWJsZSAhaW1wb3J0YW50O21hcmdpbjo4cHggMCAhaW1wb3J0YW50O3BhZGRpbmc6OHB4ICFpbXBvcnRhbnQ7dGV4dC1pbmRlbnQ6MCAhaW1wb3J0YW50O3otaW5kZXg6YXV0byAhaW1wb3J0YW50O3doaXRlLXNwYWNlOnByZS13cmFwICFpbXBvcnRhbnQ7Zm9udC1mYW1pbHk6bW9ub3NwYWNlICFpbXBvcnRhbnQiPj09PT09PT0gWkVLTk9QID09PT09PT0NCk1lc3NhZ2UgSUQ6IEFiMTJDZDM0DQpWZXJpZnk6IGh0dHBzOi8vdmVyaWZ5Lnpla25vcC5vcmcvdjEvZXlKemFXZHVZWFIxY21VaU9pSjRJbjA8L2Rpdj4NCjwhLS0gPT09PT09PSBaRUtOT1AgPT09PT09PSAtLT4NCjxodG1sPg0KPGJvZHk+PHA+RmFrdHVyYSDEjS4gMjAyNi0wOTwvcD48L2JvZHk+DQo8L2h0bWw+DQo8IS0tID09PT09PT0gRU5EIFpFS05PUCA9PT09PT09IC0tPg0KPGRpdiBzdHlsZT0iZGlzcGxheTpibG9jayAhaW1wb3J0YW50O3Zpc2liaWxpdHk6dmlzaWJsZSAhaW1wb3J0YW50O29wYWNpdHk6MSAhaW1wb3J0YW50O3Bvc2l0aW9uOnN0YXRpYyAhaW1wb3J0YW50O3RyYW5zZm9ybTpub25lICFpbXBvcnRhbnQ7ZmlsdGVyOm5vbmUgIWltcG9ydGFudDtjbGlwOmF1dG8gIWltcG9ydGFudDtjbGlwLXBhdGg6bm9uZSAhaW1wb3J0YW50O2NvbnRlbnQtdmlzaWJpbGl0eTp2aXNpYmxlICFpbXBvcnRhbnQ7Zm9udC1zaXplOjEzcHggIWltcG9ydGFudDtsaW5lLWhlaWdodDoxLjQgIWltcG9ydGFudDtjb2xvcjojMDAwMDAwICFpbXBvcnRhbnQ7YmFja2dyb3VuZDojZmZmZmZmICFpbXBvcnRhbnQ7d2lkdGg6YXV0byAhaW1wb3J0YW50O2hlaWdodDphdXRvICFpbXBvcnRhbnQ7bWF4LWhlaWdodDpub25lICFpbXBvcnRhbnQ7b3ZlcmZsb3c6dmlzaWJsZSAhaW1wb3J0YW50O21hcmdpbjo4cHggMCAhaW1wb3J0YW50O3BhZGRpbmc6OHB4ICFpbXBvcnRhbnQ7dGV4dC1pbmRlbnQ6MCAhaW1wb3J0YW50O3otaW5kZXg6YXV0byAhaW1wb3J0YW50O3doaXRlLXNwYWNlOnByZS13cmFwICFpbXBvcnRhbnQ7Zm9udC1mYW1pbHk6bW9ub3NwYWNlICFpbXBvcnRhbnQiPj09PT09PT0gRU5EIFpFS05PUCA9PT09PT09DQpUZXh0IG91dHNpZGUgdGhlc2UgbWFya2VycyBpcyBub3QgY292ZXJlZCBieSB0aGUgc2lnbmF0dXJlLiBaRUtOT1AgbmV2ZXIgY29uZmlybXMgYXV0aGVudGljaXR5IGJ5IHRleHQgaW5zaWRlIGEgbWVzc2FnZS48L2Rpdj4NCjwhLS0gPT09PT09PSBFTkQgWkVLTk9QID09PT09PT0gLS0+DQo="
+      }
+    },
+    {
+      "id": "build-html-not-verified-001-lf-doctype",
+      "kind": "not-verified",
+      "input": {
+        "inner": "<!DOCTYPE html>\n<html><head><title>Invoice</title></head>\n<body><p>Amount due: 100 EUR</p></body></html>\n",
+        "eol": "\n"
+      },
+      "note": "the not-verified blocks, same placement",
+      "expected": {
+        "text": "<!DOCTYPE html>\n<!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.</div>\n<!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\n<html><head><title>Invoice</title></head>\n<body><p>Amount due: 100 EUR</p></body></html>\n<!-- ------- END ZEKNOP NOTICE ------- -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- END ZEKNOP NOTICE -------</div>\n<!-- ------- END ZEKNOP NOTICE ------- -->\n",
+        "utf8_base64": "PCFET0NUWVBFIGh0bWw+CjwhLS0gLS0tLS0tLSBaRUtOT1AgTk9USUNFOiBTRU5ERVIgTk9UIFZFUklGSUVEIC0tLS0tLS0gLS0+CjxkaXYgc3R5bGU9ImRpc3BsYXk6YmxvY2sgIWltcG9ydGFudDt2aXNpYmlsaXR5OnZpc2libGUgIWltcG9ydGFudDtvcGFjaXR5OjEgIWltcG9ydGFudDtwb3NpdGlvbjpzdGF0aWMgIWltcG9ydGFudDt0cmFuc2Zvcm06bm9uZSAhaW1wb3J0YW50O2ZpbHRlcjpub25lICFpbXBvcnRhbnQ7Y2xpcDphdXRvICFpbXBvcnRhbnQ7Y2xpcC1wYXRoOm5vbmUgIWltcG9ydGFudDtjb250ZW50LXZpc2liaWxpdHk6dmlzaWJsZSAhaW1wb3J0YW50O2ZvbnQtc2l6ZToxM3B4ICFpbXBvcnRhbnQ7bGluZS1oZWlnaHQ6MS40ICFpbXBvcnRhbnQ7Y29sb3I6IzAwMDAwMCAhaW1wb3J0YW50O2JhY2tncm91bmQ6I2ZmZmZmZiAhaW1wb3J0YW50O3dpZHRoOmF1dG8gIWltcG9ydGFudDtoZWlnaHQ6YXV0byAhaW1wb3J0YW50O21heC1oZWlnaHQ6bm9uZSAhaW1wb3J0YW50O292ZXJmbG93OnZpc2libGUgIWltcG9ydGFudDttYXJnaW46OHB4IDAgIWltcG9ydGFudDtwYWRkaW5nOjhweCAhaW1wb3J0YW50O3RleHQtaW5kZW50OjAgIWltcG9ydGFudDt6LWluZGV4OmF1dG8gIWltcG9ydGFudDt3aGl0ZS1zcGFjZTpwcmUtd3JhcCAhaW1wb3J0YW50O2ZvbnQtZmFtaWx5Om1vbm9zcGFjZSAhaW1wb3J0YW50Ij4tLS0tLS0tIFpFS05PUCBOT1RJQ0U6IFNFTkRFUiBOT1QgVkVSSUZJRUQgLS0tLS0tLQpUaGlzIG1lc3NhZ2UgcGFzc2VkIHRocm91Z2ggYSBaRUtOT1Agc2lnbmluZyBzZXJ2aWNlIGJ1dCBjb3VsZCBub3QgYmUgc2lnbmVkLgpUcmVhdCBpdCBhcyBvcmRpbmFyeSwgdW52ZXJpZmllZCBlLW1haWwuIFRvIGNoZWNrIGFueSBaRUtOT1AgbWVzc2FnZSwgb3BlbiB2ZXJpZnkuemVrbm9wLm9yZyB5b3Vyc2VsZiBhbmQgcGFzdGUgdGhlIG1lc3NhZ2UuPC9kaXY+CjwhLS0gLS0tLS0tLSBaRUtOT1AgTk9USUNFOiBTRU5ERVIgTk9UIFZFUklGSUVEIC0tLS0tLS0gLS0+CjxodG1sPjxoZWFkPjx0aXRsZT5JbnZvaWNlPC90aXRsZT48L2hlYWQ+Cjxib2R5PjxwPkFtb3VudCBkdWU6IDEwMCBFVVI8L3A+PC9ib2R5PjwvaHRtbD4KPCEtLSAtLS0tLS0tIEVORCBaRUtOT1AgTk9USUNFIC0tLS0tLS0gLS0+CjxkaXYgc3R5bGU9ImRpc3BsYXk6YmxvY2sgIWltcG9ydGFudDt2aXNpYmlsaXR5OnZpc2libGUgIWltcG9ydGFudDtvcGFjaXR5OjEgIWltcG9ydGFudDtwb3NpdGlvbjpzdGF0aWMgIWltcG9ydGFudDt0cmFuc2Zvcm06bm9uZSAhaW1wb3J0YW50O2ZpbHRlcjpub25lICFpbXBvcnRhbnQ7Y2xpcDphdXRvICFpbXBvcnRhbnQ7Y2xpcC1wYXRoOm5vbmUgIWltcG9ydGFudDtjb250ZW50LXZpc2liaWxpdHk6dmlzaWJsZSAhaW1wb3J0YW50O2ZvbnQtc2l6ZToxM3B4ICFpbXBvcnRhbnQ7bGluZS1oZWlnaHQ6MS40ICFpbXBvcnRhbnQ7Y29sb3I6IzAwMDAwMCAhaW1wb3J0YW50O2JhY2tncm91bmQ6I2ZmZmZmZiAhaW1wb3J0YW50O3dpZHRoOmF1dG8gIWltcG9ydGFudDtoZWlnaHQ6YXV0byAhaW1wb3J0YW50O21heC1oZWlnaHQ6bm9uZSAhaW1wb3J0YW50O292ZXJmbG93OnZpc2libGUgIWltcG9ydGFudDttYXJnaW46OHB4IDAgIWltcG9ydGFudDtwYWRkaW5nOjhweCAhaW1wb3J0YW50O3RleHQtaW5kZW50OjAgIWltcG9ydGFudDt6LWluZGV4OmF1dG8gIWltcG9ydGFudDt3aGl0ZS1zcGFjZTpwcmUtd3JhcCAhaW1wb3J0YW50O2ZvbnQtZmFtaWx5Om1vbm9zcGFjZSAhaW1wb3J0YW50Ij4tLS0tLS0tIEVORCBaRUtOT1AgTk9USUNFIC0tLS0tLS08L2Rpdj4KPCEtLSAtLS0tLS0tIEVORCBaRUtOT1AgTk9USUNFIC0tLS0tLS0gLS0+Cg=="
+      }
+    },
+    {
+      "id": "build-html-not-verified-002-crlf-no-doctype",
+      "kind": "not-verified",
+      "input": {
+        "inner": "<html>\r\n<body><p>Faktura č. 2026-09</p></body>\r\n</html>\r\n",
+        "eol": "\r\n"
+      },
+      "note": "the not-verified blocks, CRLF, no DOCTYPE",
+      "expected": {
+        "text": "<!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\r\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\r\nThis message passed through a ZEKNOP signing service but could not be signed.\r\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.</div>\r\n<!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\r\n<html>\r\n<body><p>Faktura č. 2026-09</p></body>\r\n</html>\r\n<!-- ------- END ZEKNOP NOTICE ------- -->\r\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- END ZEKNOP NOTICE -------</div>\r\n<!-- ------- END ZEKNOP NOTICE ------- -->\r\n",
+        "utf8_base64": "PCEtLSAtLS0tLS0tIFpFS05PUCBOT1RJQ0U6IFNFTkRFUiBOT1QgVkVSSUZJRUQgLS0tLS0tLSAtLT4NCjxkaXYgc3R5bGU9ImRpc3BsYXk6YmxvY2sgIWltcG9ydGFudDt2aXNpYmlsaXR5OnZpc2libGUgIWltcG9ydGFudDtvcGFjaXR5OjEgIWltcG9ydGFudDtwb3NpdGlvbjpzdGF0aWMgIWltcG9ydGFudDt0cmFuc2Zvcm06bm9uZSAhaW1wb3J0YW50O2ZpbHRlcjpub25lICFpbXBvcnRhbnQ7Y2xpcDphdXRvICFpbXBvcnRhbnQ7Y2xpcC1wYXRoOm5vbmUgIWltcG9ydGFudDtjb250ZW50LXZpc2liaWxpdHk6dmlzaWJsZSAhaW1wb3J0YW50O2ZvbnQtc2l6ZToxM3B4ICFpbXBvcnRhbnQ7bGluZS1oZWlnaHQ6MS40ICFpbXBvcnRhbnQ7Y29sb3I6IzAwMDAwMCAhaW1wb3J0YW50O2JhY2tncm91bmQ6I2ZmZmZmZiAhaW1wb3J0YW50O3dpZHRoOmF1dG8gIWltcG9ydGFudDtoZWlnaHQ6YXV0byAhaW1wb3J0YW50O21heC1oZWlnaHQ6bm9uZSAhaW1wb3J0YW50O292ZXJmbG93OnZpc2libGUgIWltcG9ydGFudDttYXJnaW46OHB4IDAgIWltcG9ydGFudDtwYWRkaW5nOjhweCAhaW1wb3J0YW50O3RleHQtaW5kZW50OjAgIWltcG9ydGFudDt6LWluZGV4OmF1dG8gIWltcG9ydGFudDt3aGl0ZS1zcGFjZTpwcmUtd3JhcCAhaW1wb3J0YW50O2ZvbnQtZmFtaWx5Om1vbm9zcGFjZSAhaW1wb3J0YW50Ij4tLS0tLS0tIFpFS05PUCBOT1RJQ0U6IFNFTkRFUiBOT1QgVkVSSUZJRUQgLS0tLS0tLQ0KVGhpcyBtZXNzYWdlIHBhc3NlZCB0aHJvdWdoIGEgWkVLTk9QIHNpZ25pbmcgc2VydmljZSBidXQgY291bGQgbm90IGJlIHNpZ25lZC4NClRyZWF0IGl0IGFzIG9yZGluYXJ5LCB1bnZlcmlmaWVkIGUtbWFpbC4gVG8gY2hlY2sgYW55IFpFS05PUCBtZXNzYWdlLCBvcGVuIHZlcmlmeS56ZWtub3Aub3JnIHlvdXJzZWxmIGFuZCBwYXN0ZSB0aGUgbWVzc2FnZS48L2Rpdj4NCjwhLS0gLS0tLS0tLSBaRUtOT1AgTk9USUNFOiBTRU5ERVIgTk9UIFZFUklGSUVEIC0tLS0tLS0gLS0+DQo8aHRtbD4NCjxib2R5PjxwPkZha3R1cmEgxI0uIDIwMjYtMDk8L3A+PC9ib2R5Pg0KPC9odG1sPg0KPCEtLSAtLS0tLS0tIEVORCBaRUtOT1AgTk9USUNFIC0tLS0tLS0gLS0+DQo8ZGl2IHN0eWxlPSJkaXNwbGF5OmJsb2NrICFpbXBvcnRhbnQ7dmlzaWJpbGl0eTp2aXNpYmxlICFpbXBvcnRhbnQ7b3BhY2l0eToxICFpbXBvcnRhbnQ7cG9zaXRpb246c3RhdGljICFpbXBvcnRhbnQ7dHJhbnNmb3JtOm5vbmUgIWltcG9ydGFudDtmaWx0ZXI6bm9uZSAhaW1wb3J0YW50O2NsaXA6YXV0byAhaW1wb3J0YW50O2NsaXAtcGF0aDpub25lICFpbXBvcnRhbnQ7Y29udGVudC12aXNpYmlsaXR5OnZpc2libGUgIWltcG9ydGFudDtmb250LXNpemU6MTNweCAhaW1wb3J0YW50O2xpbmUtaGVpZ2h0OjEuNCAhaW1wb3J0YW50O2NvbG9yOiMwMDAwMDAgIWltcG9ydGFudDtiYWNrZ3JvdW5kOiNmZmZmZmYgIWltcG9ydGFudDt3aWR0aDphdXRvICFpbXBvcnRhbnQ7aGVpZ2h0OmF1dG8gIWltcG9ydGFudDttYXgtaGVpZ2h0Om5vbmUgIWltcG9ydGFudDtvdmVyZmxvdzp2aXNpYmxlICFpbXBvcnRhbnQ7bWFyZ2luOjhweCAwICFpbXBvcnRhbnQ7cGFkZGluZzo4cHggIWltcG9ydGFudDt0ZXh0LWluZGVudDowICFpbXBvcnRhbnQ7ei1pbmRleDphdXRvICFpbXBvcnRhbnQ7d2hpdGUtc3BhY2U6cHJlLXdyYXAgIWltcG9ydGFudDtmb250LWZhbWlseTptb25vc3BhY2UgIWltcG9ydGFudCI+LS0tLS0tLSBFTkQgWkVLTk9QIE5PVElDRSAtLS0tLS0tPC9kaXY+DQo8IS0tIC0tLS0tLS0gRU5EIFpFS05PUCBOT1RJQ0UgLS0tLS0tLSAtLT4NCg=="
+      }
+    },
+    {
+      "id": "build-html-positive-003-markup-without-a-document-element",
+      "kind": "positive",
+      "input": {
+        "inner": "<p>hello</p>\n",
+        "envelope_id": "Ab12Cd34",
+        "verify_url": "https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0",
+        "eol": "\n"
+      },
+      "note": "a part that is markup without a document element: nothing to step over, the blocks go at its two ends",
+      "expected": {
+        "text": "<!-- ======= ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\n<!-- ======= ZEKNOP ======= -->\n<p>hello</p>\n<!-- ======= END ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.</div>\n<!-- ======= END ZEKNOP ======= -->\n",
+        "utf8_base64": "PCEtLSA9PT09PT09IFpFS05PUCA9PT09PT09IC0tPgo8ZGl2IHN0eWxlPSJkaXNwbGF5OmJsb2NrICFpbXBvcnRhbnQ7dmlzaWJpbGl0eTp2aXNpYmxlICFpbXBvcnRhbnQ7b3BhY2l0eToxICFpbXBvcnRhbnQ7cG9zaXRpb246c3RhdGljICFpbXBvcnRhbnQ7dHJhbnNmb3JtOm5vbmUgIWltcG9ydGFudDtmaWx0ZXI6bm9uZSAhaW1wb3J0YW50O2NsaXA6YXV0byAhaW1wb3J0YW50O2NsaXAtcGF0aDpub25lICFpbXBvcnRhbnQ7Y29udGVudC12aXNpYmlsaXR5OnZpc2libGUgIWltcG9ydGFudDtmb250LXNpemU6MTNweCAhaW1wb3J0YW50O2xpbmUtaGVpZ2h0OjEuNCAhaW1wb3J0YW50O2NvbG9yOiMwMDAwMDAgIWltcG9ydGFudDtiYWNrZ3JvdW5kOiNmZmZmZmYgIWltcG9ydGFudDt3aWR0aDphdXRvICFpbXBvcnRhbnQ7aGVpZ2h0OmF1dG8gIWltcG9ydGFudDttYXgtaGVpZ2h0Om5vbmUgIWltcG9ydGFudDtvdmVyZmxvdzp2aXNpYmxlICFpbXBvcnRhbnQ7bWFyZ2luOjhweCAwICFpbXBvcnRhbnQ7cGFkZGluZzo4cHggIWltcG9ydGFudDt0ZXh0LWluZGVudDowICFpbXBvcnRhbnQ7ei1pbmRleDphdXRvICFpbXBvcnRhbnQ7d2hpdGUtc3BhY2U6cHJlLXdyYXAgIWltcG9ydGFudDtmb250LWZhbWlseTptb25vc3BhY2UgIWltcG9ydGFudCI+PT09PT09PSBaRUtOT1AgPT09PT09PQpNZXNzYWdlIElEOiBBYjEyQ2QzNApWZXJpZnk6IGh0dHBzOi8vdmVyaWZ5Lnpla25vcC5vcmcvdjEvZXlKemFXZHVZWFIxY21VaU9pSjRJbjA8L2Rpdj4KPCEtLSA9PT09PT09IFpFS05PUCA9PT09PT09IC0tPgo8cD5oZWxsbzwvcD4KPCEtLSA9PT09PT09IEVORCBaRUtOT1AgPT09PT09PSAtLT4KPGRpdiBzdHlsZT0iZGlzcGxheTpibG9jayAhaW1wb3J0YW50O3Zpc2liaWxpdHk6dmlzaWJsZSAhaW1wb3J0YW50O29wYWNpdHk6MSAhaW1wb3J0YW50O3Bvc2l0aW9uOnN0YXRpYyAhaW1wb3J0YW50O3RyYW5zZm9ybTpub25lICFpbXBvcnRhbnQ7ZmlsdGVyOm5vbmUgIWltcG9ydGFudDtjbGlwOmF1dG8gIWltcG9ydGFudDtjbGlwLXBhdGg6bm9uZSAhaW1wb3J0YW50O2NvbnRlbnQtdmlzaWJpbGl0eTp2aXNpYmxlICFpbXBvcnRhbnQ7Zm9udC1zaXplOjEzcHggIWltcG9ydGFudDtsaW5lLWhlaWdodDoxLjQgIWltcG9ydGFudDtjb2xvcjojMDAwMDAwICFpbXBvcnRhbnQ7YmFja2dyb3VuZDojZmZmZmZmICFpbXBvcnRhbnQ7d2lkdGg6YXV0byAhaW1wb3J0YW50O2hlaWdodDphdXRvICFpbXBvcnRhbnQ7bWF4LWhlaWdodDpub25lICFpbXBvcnRhbnQ7b3ZlcmZsb3c6dmlzaWJsZSAhaW1wb3J0YW50O21hcmdpbjo4cHggMCAhaW1wb3J0YW50O3BhZGRpbmc6OHB4ICFpbXBvcnRhbnQ7dGV4dC1pbmRlbnQ6MCAhaW1wb3J0YW50O3otaW5kZXg6YXV0byAhaW1wb3J0YW50O3doaXRlLXNwYWNlOnByZS13cmFwICFpbXBvcnRhbnQ7Zm9udC1mYW1pbHk6bW9ub3NwYWNlICFpbXBvcnRhbnQiPj09PT09PT0gRU5EIFpFS05PUCA9PT09PT09ClRleHQgb3V0c2lkZSB0aGVzZSBtYXJrZXJzIGlzIG5vdCBjb3ZlcmVkIGJ5IHRoZSBzaWduYXR1cmUuIFpFS05PUCBuZXZlciBjb25maXJtcyBhdXRoZW50aWNpdHkgYnkgdGV4dCBpbnNpZGUgYSBtZXNzYWdlLjwvZGl2Pgo8IS0tID09PT09PT0gRU5EIFpFS05PUCA9PT09PT09IC0tPgo="
+      }
+    }
+  ],
+  "strip": [
+    {
+      "id": "strip-positive-001-lf",
+      "note": "new positive envelope",
+      "delivered": "======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\n",
+      "expected": "Amount due: 100 EUR\nPlease pay by Friday.",
+      "expected_kind": "positive"
+    },
+    {
+      "id": "strip-positive-002-crlf",
+      "note": "new positive envelope, CRLF",
+      "delivered": "======= ZEKNOP =======\r\nMessage ID: Ab12Cd34\r\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\r\n\r\nFaktura č. 2026-09\r\nSplatnost: pátek\r\n\r\nDěkujeme.\r\n\r\n======= END ZEKNOP =======\r\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\r\n",
+      "expected": "Faktura č. 2026-09\r\nSplatnost: pátek\r\n\r\nDěkujeme.",
+      "expected_kind": "positive"
+    },
+    {
+      "id": "strip-legacy-001-lf",
+      "note": "legacy positive envelope (signers before v1.4)",
+      "delivered": "======= ZEKNOP VERIFIED MESSAGE =======\nID: Ab12Cd34\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP VERIFIED =======\nContent outside these markers is not verified.\nTo verify this email has not been altered, open https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\nLearn more: zeknop.org/verified\n",
+      "expected": "Amount due: 100 EUR\nPlease pay by Friday.",
+      "expected_kind": "legacy-positive"
+    },
+    {
+      "id": "strip-legacy-002-crlf",
+      "note": "legacy positive envelope, CRLF",
+      "delivered": "======= ZEKNOP VERIFIED MESSAGE =======\r\nID: Ab12Cd34\r\n\r\nFaktura č. 2026-09\r\nSplatnost: pátek\r\n\r\nDěkujeme.\r\n\r\n======= END ZEKNOP VERIFIED =======\r\nContent outside these markers is not verified.\r\nTo verify this email has not been altered, open https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\r\nLearn more: zeknop.org/verified\r\n",
+      "expected": "Faktura č. 2026-09\r\nSplatnost: pátek\r\n\r\nDěkujeme.",
+      "expected_kind": "legacy-positive"
+    },
+    {
+      "id": "strip-legacy-003-u2550-markers",
+      "note": "legacy positive envelope with U+2550 marker characters",
+      "delivered": "═══════ ZEKNOP VERIFIED MESSAGE ═══════\nID: Ab12Cd34\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n═══════ END ZEKNOP VERIFIED ═══════\nContent outside these markers is not verified.\nTo verify this email has not been altered, open https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\nLearn more: zeknop.org/verified\n",
+      "expected": "Amount due: 100 EUR\nPlease pay by Friday.",
+      "expected_kind": "legacy-positive"
+    },
+    {
+      "id": "strip-not-verified-001-lf",
+      "note": "not-verified envelope: recognised, never taken off before hashing",
+      "delivered": "------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n------- END ZEKNOP NOTICE -------\n",
+      "expected": "------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n------- END ZEKNOP NOTICE -------\n",
+      "expected_kind": "not-verified"
+    },
+    {
+      "id": "strip-not-verified-002-crlf",
+      "note": "not-verified envelope, CRLF: recognised, never taken off before hashing",
+      "delivered": "------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\r\nThis message passed through a ZEKNOP signing service but could not be signed.\r\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.\r\n\r\nFaktura č. 2026-09\r\nSplatnost: pátek\r\n\r\nDěkujeme.\r\n\r\n------- END ZEKNOP NOTICE -------\r\n",
+      "expected": "------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\r\nThis message passed through a ZEKNOP signing service but could not be signed.\r\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.\r\n\r\nFaktura č. 2026-09\r\nSplatnost: pátek\r\n\r\nDěkujeme.\r\n\r\n------- END ZEKNOP NOTICE -------\r\n",
+      "expected_kind": "not-verified"
+    },
+    {
+      "id": "strip-none-001",
+      "note": "no envelope: unchanged",
+      "delivered": "Hello,\n\nno envelope in this text.\n",
+      "expected": "Hello,\n\nno envelope in this text.\n",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-positive-003-quoted-not-verified-inside",
+      "note": "a not-verified envelope quoted inside signed content stays content: the outer start marker comes first",
+      "delivered": "======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nPaid, thank you.\n\n> ------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\n> This message passed through a ZEKNOP signing service but could not be signed.\n>\n> Amount due: 100 EUR\n>\n> ------- END ZEKNOP NOTICE -------\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\n",
+      "expected": "Paid, thank you.\n\n> ------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\n> This message passed through a ZEKNOP signing service but could not be signed.\n>\n> Amount due: 100 EUR\n>\n> ------- END ZEKNOP NOTICE -------",
+      "expected_kind": "positive"
+    },
+    {
+      "id": "strip-positive-004-text-before-start",
+      "note": "a start marker that is not the head of the part does not open an envelope, so a message something prepended a line to is not stripped (and goes red) instead of verifying with a stranger's text above the block",
+      "delivered": "[EXTERNAL]\n======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\n",
+      "expected": "[EXTERNAL]\n======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\n",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-positive-005-new-end-marker-only",
+      "note": "start marker without an end marker: unchanged",
+      "delivered": "======= ZEKNOP =======\nMessage ID: Ab12Cd34\n\nAmount due: 100 EUR\nPlease pay by Friday.\n",
+      "expected": "======= ZEKNOP =======\nMessage ID: Ab12Cd34\n\nAmount due: 100 EUR\nPlease pay by Friday.\n",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-mixed-001-legacy-start-new-end",
+      "note": "an end marker of another kind does not close the envelope: unchanged",
+      "delivered": "======= ZEKNOP VERIFIED MESSAGE =======\nID: Ab12Cd34\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\n",
+      "expected": "======= ZEKNOP VERIFIED MESSAGE =======\nID: Ab12Cd34\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\n",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-not-verified-003-positive-end-inside",
+      "note": "the not-verified envelope closes only at its own end marker, and is not taken off",
+      "delivered": "------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\n\nAmount due: 100 EUR\nPlease pay by Friday.\n======= END ZEKNOP =======\n\n------- END ZEKNOP NOTICE -------\n",
+      "expected": "------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\n\nAmount due: 100 EUR\nPlease pay by Friday.\n======= END ZEKNOP =======\n\n------- END ZEKNOP NOTICE -------\n",
+      "expected_kind": "not-verified"
+    },
+    {
+      "id": "strip-not-verified-004-signed-envelope-inside",
+      "note": "a positive envelope inside a not-verified envelope is not taken off either: the outer one decides",
+      "delivered": "------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.\n\n======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\n\n\n------- END ZEKNOP NOTICE -------\n",
+      "expected": "------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.\n\n======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\n\n\n------- END ZEKNOP NOTICE -------\n",
+      "expected_kind": "not-verified"
+    },
+    {
+      "id": "strip-positive-006-no-blank-line",
+      "note": "no blank line after the start marker: unchanged",
+      "delivered": "======= ZEKNOP =======\nMessage ID: Ab12Cd34\nAmount due: 100 EUR\nPlease pay by Friday.\n======= END ZEKNOP =======\n",
+      "expected": "======= ZEKNOP =======\nMessage ID: Ab12Cd34\nAmount due: 100 EUR\nPlease pay by Friday.\n======= END ZEKNOP =======\n",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-p5-001-quoted-with-angle-bracket",
+      "note": "an envelope quoted with `>` inside the content is content",
+      "delivered": "Thanks.\n\n> ======= ZEKNOP =======\n> Message ID: Ab12Cd34\n>\n> Amount due: 100 EUR\n>\n> ======= END ZEKNOP =======",
+      "expected": "Thanks.\n\n> ======= ZEKNOP =======\n> Message ID: Ab12Cd34\n>\n> Amount due: 100 EUR\n>\n> ======= END ZEKNOP =======",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-p5-002-indented",
+      "note": "an indented envelope inside the content is content",
+      "delivered": "See below.\n\n    ======= ZEKNOP =======\n    Message ID: Ab12Cd34\n\n    Amount due: 100 EUR\n\n    ======= END ZEKNOP =======",
+      "expected": "See below.\n\n    ======= ZEKNOP =======\n    Message ID: Ab12Cd34\n\n    Amount due: 100 EUR\n\n    ======= END ZEKNOP =======",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-p5-003-envelope-at-a-line-start-in-the-middle",
+      "note": "an envelope quoted WITHOUT any prefix, deeper in the part, is content too - a verifier never searches for the markers",
+      "delivered": "Quoting your mail:\n======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\n",
+      "expected": "Quoting your mail:\n======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\n",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-p5-004-text-after-the-closing-line",
+      "note": "text appended BELOW the closing lines does not move the envelope - the end marker taken is the last line-initial one, and what follows it is outside the markers - such a message still verifies",
+      "delivered": "======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nAmount due: 100 EUR\nPlease pay by Friday.\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\nSent from my phone\n",
+      "expected": "Amount due: 100 EUR\nPlease pay by Friday.",
+      "expected_kind": "positive"
+    },
+    {
+      "id": "strip-p5-005-content-carrying-an-end-marker",
+      "note": "the end marker taken is the one at the tail, so content carrying an end marker is not truncated",
+      "delivered": "======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0\n\nAmount due: 100 EUR\n======= END ZEKNOP =======\nand more\n\n======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.\n",
+      "expected": "Amount due: 100 EUR\n======= END ZEKNOP =======\nand more",
+      "expected_kind": "positive"
+    },
+    {
+      "id": "strip-p5-006-not-verified-quoted",
+      "note": "a quoted not-verified envelope is content, so a signed reply that quotes one is green",
+      "delivered": "Reply.\n\n> ------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\n> This message passed through a ZEKNOP signing service but could not be signed.\n>\n> body\n>\n> ------- END ZEKNOP NOTICE -------",
+      "expected": "Reply.\n\n> ------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\n> This message passed through a ZEKNOP signing service but could not be signed.\n>\n> body\n>\n> ------- END ZEKNOP NOTICE -------",
+      "expected_kind": null
+    }
+  ],
+  "strip_html": [
+    {
+      "id": "strip-html-001-positive-with-a-doctype",
+      "note": "the head block sits after the DOCTYPE; the DOCTYPE stays in the content",
+      "delivered": "<!DOCTYPE html>\n<!-- ======= ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\n<!-- ======= ZEKNOP ======= -->\n<html><body><p>Amount due: 100 EUR</p></body></html>\n<!-- ======= END ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.</div>\n<!-- ======= END ZEKNOP ======= -->\n",
+      "expected": "<!DOCTYPE html>\n<html><body><p>Amount due: 100 EUR</p></body></html>\n",
+      "expected_kind": "positive"
+    },
+    {
+      "id": "strip-html-002-positive-crlf",
+      "note": "CRLF, no DOCTYPE: the head block is the first byte of the part",
+      "delivered": "<!-- ======= ZEKNOP ======= -->\r\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\r\nMessage ID: Ab12Cd34\r\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\r\n<!-- ======= ZEKNOP ======= -->\r\n<html>\r\n<body><p>Faktura č. 2026-09</p></body>\r\n</html>\r\n<!-- ======= END ZEKNOP ======= -->\r\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= END ZEKNOP =======\r\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.</div>\r\n<!-- ======= END ZEKNOP ======= -->\r\n",
+      "expected": "<html>\r\n<body><p>Faktura č. 2026-09</p></body>\r\n</html>\r\n",
+      "expected_kind": "positive"
+    },
+    {
+      "id": "strip-html-003-not-verified-is-never-taken-off",
+      "note": "recognised, never taken off before hashing, so it can never recompute to a signature",
+      "delivered": "<!DOCTYPE html>\n<!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.</div>\n<!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\n<html><body><p>Amount due: 100 EUR</p></body></html>\n<!-- ------- END ZEKNOP NOTICE ------- -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- END ZEKNOP NOTICE -------</div>\n<!-- ------- END ZEKNOP NOTICE ------- -->\n",
+      "expected": "<!DOCTYPE html>\n<!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.</div>\n<!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\n<html><body><p>Amount due: 100 EUR</p></body></html>\n<!-- ------- END ZEKNOP NOTICE ------- -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- END ZEKNOP NOTICE -------</div>\n<!-- ------- END ZEKNOP NOTICE ------- -->\n",
+      "expected_kind": "not-verified"
+    },
+    {
+      "id": "strip-html-004-no-envelope",
+      "note": "no blocks: unchanged",
+      "delivered": "<!DOCTYPE html>\n<html><body><p>Amount due: 100 EUR</p></body></html>\n",
+      "expected": "<!DOCTYPE html>\n<html><body><p>Amount due: 100 EUR</p></body></html>\n",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-html-005-quoted-inside",
+      "note": "a block quoted inside the content is content — the comments are never searched for inside the part",
+      "delivered": "<!DOCTYPE html>\n<html><body><p>Amount due: 100 EUR</p></body></html><blockquote><!-- ======= ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\n<!-- ======= ZEKNOP ======= -->\n<p>older</p>\n<!-- ======= END ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.</div>\n<!-- ======= END ZEKNOP ======= -->\n</blockquote>\n",
+      "expected": "<!DOCTYPE html>\n<html><body><p>Amount due: 100 EUR</p></body></html><blockquote><!-- ======= ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\n<!-- ======= ZEKNOP ======= -->\n<p>older</p>\n<!-- ======= END ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.</div>\n<!-- ======= END ZEKNOP ======= -->\n</blockquote>\n",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-html-006-text-before-the-head",
+      "note": "a part something prepended a line to does not begin with the head block, so nothing is taken off",
+      "delivered": "[EXTERNAL]\n<!-- ======= ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\n<!-- ======= ZEKNOP ======= -->\n<!DOCTYPE html>\n<html><body><p>Amount due: 100 EUR</p></body></html>\n<!-- ======= END ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.</div>\n<!-- ======= END ZEKNOP ======= -->\n",
+      "expected": "[EXTERNAL]\n<!-- ======= ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\n<!-- ======= ZEKNOP ======= -->\n<!DOCTYPE html>\n<html><body><p>Amount due: 100 EUR</p></body></html>\n<!-- ======= END ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.</div>\n<!-- ======= END ZEKNOP ======= -->\n",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-html-007-head-without-a-tail",
+      "note": "a head block with no tail block at the end of the part: unchanged",
+      "delivered": "<!DOCTYPE html>\n<!-- ======= ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\n<!-- ======= ZEKNOP ======= -->\n<html><body><p>Amount due: 100 EUR</p></body></html>\n",
+      "expected": "<!DOCTYPE html>\n<!-- ======= ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\n<!-- ======= ZEKNOP ======= -->\n<html><body><p>Amount due: 100 EUR</p></body></html>\n",
+      "expected_kind": null
+    },
+    {
+      "id": "strip-html-008-not-verified-quoted-in-a-positive-envelope",
+      "note": "a quoted not-verified block inside signed content is content and stays in the hash",
+      "delivered": "<!-- ======= ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= ZEKNOP =======\nMessage ID: Ab12Cd34\nVerify: https://verify.zeknop.org/v1/eyJzaWduYXR1cmUiOiJ4In0</div>\n<!-- ======= ZEKNOP ======= -->\n<p>reply</p>\n<blockquote><!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.</div>\n<!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\n<p>older</p>\n<!-- ------- END ZEKNOP NOTICE ------- -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- END ZEKNOP NOTICE -------</div>\n<!-- ------- END ZEKNOP NOTICE ------- -->\n</blockquote>\n<!-- ======= END ZEKNOP ======= -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">======= END ZEKNOP =======\nText outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.</div>\n<!-- ======= END ZEKNOP ======= -->\n",
+      "expected": "<p>reply</p>\n<blockquote><!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- ZEKNOP NOTICE: SENDER NOT VERIFIED -------\nThis message passed through a ZEKNOP signing service but could not be signed.\nTreat it as ordinary, unverified e-mail. To check any ZEKNOP message, open verify.zeknop.org yourself and paste the message.</div>\n<!-- ------- ZEKNOP NOTICE: SENDER NOT VERIFIED ------- -->\n<p>older</p>\n<!-- ------- END ZEKNOP NOTICE ------- -->\n<div style=\"display:block !important;visibility:visible !important;opacity:1 !important;position:static !important;transform:none !important;filter:none !important;clip:auto !important;clip-path:none !important;content-visibility:visible !important;font-size:13px !important;line-height:1.4 !important;color:#000000 !important;background:#ffffff !important;width:auto !important;height:auto !important;max-height:none !important;overflow:visible !important;margin:8px 0 !important;padding:8px !important;text-indent:0 !important;z-index:auto !important;white-space:pre-wrap !important;font-family:monospace !important\">------- END ZEKNOP NOTICE -------</div>\n<!-- ------- END ZEKNOP NOTICE ------- -->\n</blockquote>\n",
+      "expected_kind": "positive"
+    }
+  ]
+}

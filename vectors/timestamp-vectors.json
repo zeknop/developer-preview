@@ -1,0 +1,78 @@
+{
+  "version": "1.1",
+  "description": "Timestamp boundary test vectors for (canonical-content §8) — regression fixture for accept/reject decisions around clock skew and the outbound-MTA expiry window. Inbound verification has no max-age expiry: a signature stays verifiable.",
+  "generated_at": "2026-04-20T00:00:00.000Z",
+  "updated_at": "2026-05-31T00:00:00.000Z",
+  "reference_now": "2026-04-20T12:00:00.000Z",
+  "rules_source": "spec/canonical-content.md §8",
+  "notes": [
+    "reference_now is a fixed anchor; real implementations compare against current system time. Tests MUST inject reference_now as the simulated 'now' when evaluating these vectors.",
+    "Each vector's offset_seconds is relative to reference_now (positive = future, negative = past).",
+    "expected_decision encodes the outcome: 'accept' (proceed to crypto verify) or 'reject' with a reason tag matching spec §8 conditions.",
+    "Context distinguishes inbound verification (every component, no max-age) from the outbound MTA (24-hour window).",
+    "Inbound verification has no max-age expiry. An earlier 7-day window no longer exists, which is why the two vectors that accept old mail carry a 'b' suffix (ts-003b, ts-004b)."
+  ],
+  "vector_count": 6,
+  "vectors": [
+    {
+      "id": "ts-001-future-29s-accept",
+      "description": "29 seconds into the future — within +30s clock-skew tolerance.",
+      "context": "inbound",
+      "timestamp": "2026-04-20T12:00:29.000Z",
+      "offset_seconds": 29,
+      "expected_decision": "accept",
+      "expected_reason_tag": "within_clock_skew",
+      "spec_condition": "timestamp <= now + 30s"
+    },
+    {
+      "id": "ts-002-future-31s-reject",
+      "description": "31 seconds into the future — exceeds +30s clock-skew tolerance.",
+      "context": "inbound",
+      "timestamp": "2026-04-20T12:00:31.000Z",
+      "offset_seconds": 31,
+      "expected_decision": "reject",
+      "expected_reason_tag": "future_skew_exceeded",
+      "spec_condition": "timestamp > now + 30s"
+    },
+    {
+      "id": "ts-003b-past-8d-accept",
+      "description": "8 days old — accepted: there is no inbound max-age.",
+      "context": "inbound",
+      "timestamp": "2026-04-12T12:00:00.000Z",
+      "offset_seconds": -691200,
+      "expected_decision": "accept",
+      "expected_reason_tag": "permanent_verifiability",
+      "spec_condition": "timestamp <= now + 30s (no max-age for inbound)"
+    },
+    {
+      "id": "ts-004b-past-1y-accept",
+      "description": "1 year old — accepted. Integrity relies on the content hash and on revocation, not on age.",
+      "context": "inbound",
+      "timestamp": "2025-04-20T12:00:00.000Z",
+      "offset_seconds": -31536000,
+      "expected_decision": "accept",
+      "expected_reason_tag": "permanent_verifiability",
+      "spec_condition": "timestamp <= now + 30s (no max-age for inbound)"
+    },
+    {
+      "id": "ts-005-past-23h59m-outbound-accept",
+      "description": "23 hours 59 minutes old — just inside the 24-hour outbound MTA window.",
+      "context": "outbound",
+      "timestamp": "2026-04-19T12:01:00.000Z",
+      "offset_seconds": -86340,
+      "expected_decision": "accept",
+      "expected_reason_tag": "within_outbound_window",
+      "spec_condition": "now - timestamp <= 24 hours (outbound MTA)"
+    },
+    {
+      "id": "ts-006-past-24h1m-outbound-reject",
+      "description": "24 hours 1 minute old — just past the 24-hour outbound MTA window (inbound would still accept it).",
+      "context": "outbound",
+      "timestamp": "2026-04-19T11:59:00.000Z",
+      "offset_seconds": -86460,
+      "expected_decision": "reject",
+      "expected_reason_tag": "outbound_stale",
+      "spec_condition": "now - timestamp > 24 hours AND context = outbound"
+    }
+  ]
+}

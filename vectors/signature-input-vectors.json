@@ -1,0 +1,98 @@
+{
+  "about": "The bytes a ZEKNOP signature is made over. 'legacy' is the input of every message before v1.4: the strict hash on its own. Every other vector is the length-prefixed form of spec/signature-input.md §2, assembled by this script from the specification and not from the relay.",
+  "spec": "spec/signature-input.md",
+  "separator": "ZEKNOP-SIG",
+  "regenerate": "python3 spec/test-vectors/signature_input_vectors.py",
+  "vectors": [
+    {
+      "id": "si-001-legacy-input-is-the-strict-hash-alone",
+      "version": "legacy",
+      "algorithm": "ed25519",
+      "strict_hash_b64": "OjEn9eoCabXGz+kufrEtzMGQseHO3X+urjlgB5VCwFU=",
+      "free_hash_b64": null,
+      "signature_input_hex": "3a3127f5ea0269b5c6cfe92e7eb12dccc190b1e1cedd7faeae3960079542c055",
+      "note": "A message with X-ZEKNOP-Version 1.0, or none: the signature is made over the 32 bytes of the strict hash, with nothing around them. Every message written before v1.4."
+    },
+    {
+      "id": "si-002-v14-ed25519",
+      "version": "1.4",
+      "algorithm": "ed25519",
+      "strict_hash_b64": "OjEn9eoCabXGz+kufrEtzMGQseHO3X+urjlgB5VCwFU=",
+      "free_hash_b64": "rZXV+mUbqG2JI/4SONJKTxmIp1Ks/kJqxyrHwERxvBc=",
+      "signature_input_hex": "5a454b4e4f502d53494703312e340765643235353139203a3127f5ea0269b5c6cfe92e7eb12dccc190b1e1cedd7faeae3960079542c05520ad95d5fa651ba86d8923fe1238d24a4f1988a752acfe426ac72ac7c04471bc17",
+      "note": "The ordinary v1.4 input."
+    },
+    {
+      "id": "si-003-v14-same-hashes-different-version",
+      "version": "1.4.1",
+      "algorithm": "ed25519",
+      "strict_hash_b64": "OjEn9eoCabXGz+kufrEtzMGQseHO3X+urjlgB5VCwFU=",
+      "free_hash_b64": "rZXV+mUbqG2JI/4SONJKTxmIp1Ks/kJqxyrHwERxvBc=",
+      "signature_input_hex": "5a454b4e4f502d53494705312e342e310765643235353139203a3127f5ea0269b5c6cfe92e7eb12dccc190b1e1cedd7faeae3960079542c05520ad95d5fa651ba86d8923fe1238d24a4f1988a752acfe426ac72ac7c04471bc17",
+      "note": "The version is under the signature: a message relabelled to another version does not verify against this one."
+    },
+    {
+      "id": "si-004-v14-reserved-algorithm",
+      "version": "1.4",
+      "algorithm": "ml-dsa-65",
+      "strict_hash_b64": "OjEn9eoCabXGz+kufrEtzMGQseHO3X+urjlgB5VCwFU=",
+      "free_hash_b64": "rZXV+mUbqG2JI/4SONJKTxmIp1Ks/kJqxyrHwERxvBc=",
+      "signature_input_hex": "5a454b4e4f502d53494703312e34096d6c2d6473612d3635203a3127f5ea0269b5c6cfe92e7eb12dccc190b1e1cedd7faeae3960079542c05520ad95d5fa651ba86d8923fe1238d24a4f1988a752acfe426ac72ac7c04471bc17",
+      "note": "A reserved name is expressible in the input although nothing signs with it — the form does not change when the registry grows."
+    },
+    {
+      "id": "si-005-v14-composite-algorithm",
+      "version": "1.4",
+      "algorithm": "ed25519+ml-dsa-65",
+      "strict_hash_b64": "OjEn9eoCabXGz+kufrEtzMGQseHO3X+urjlgB5VCwFU=",
+      "free_hash_b64": "rZXV+mUbqG2JI/4SONJKTxmIp1Ks/kJqxyrHwERxvBc=",
+      "signature_input_hex": "5a454b4e4f502d53494703312e3411656432353531392b6d6c2d6473612d3635203a3127f5ea0269b5c6cfe92e7eb12dccc190b1e1cedd7faeae3960079542c05520ad95d5fa651ba86d8923fe1238d24a4f1988a752acfe426ac72ac7c04471bc17",
+      "note": "The composite name of the hybrid reserved for H1 2027; seventeen bytes long."
+    },
+    {
+      "id": "si-006-v14-non-ascii-algorithm-name",
+      "version": "1.4",
+      "algorithm": "ed25519é",
+      "strict_hash_b64": "OjEn9eoCabXGz+kufrEtzMGQseHO3X+urjlgB5VCwFU=",
+      "free_hash_b64": "rZXV+mUbqG2JI/4SONJKTxmIp1Ks/kJqxyrHwERxvBc=",
+      "signature_input_hex": "5a454b4e4f502d53494703312e340965643235353139c3a9203a3127f5ea0269b5c6cfe92e7eb12dccc190b1e1cedd7faeae3960079542c05520ad95d5fa651ba86d8923fe1238d24a4f1988a752acfe426ac72ac7c04471bc17",
+      "note": "Nine UTF-8 bytes for eight characters: the length prefix counts bytes (V-B1)."
+    },
+    {
+      "id": "si-007-v14-empty-hash-fields-are-still-length-prefixed",
+      "version": "1.4",
+      "algorithm": "ed25519",
+      "strict_hash_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "free_hash_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "signature_input_hex": "5a454b4e4f502d53494703312e340765643235353139200000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+      "note": "Two all-zero hashes: the length bytes are still there, so the boundaries hold."
+    },
+    {
+      "id": "si-012-v15-ed25519",
+      "version": "1.5",
+      "algorithm": "ed25519",
+      "strict_hash_b64": "OjEn9eoCabXGz+kufrEtzMGQseHO3X+urjlgB5VCwFU=",
+      "free_hash_b64": "rZXV+mUbqG2JI/4SONJKTxmIp1Ks/kJqxyrHwERxvBc=",
+      "signature_input_hex": "5a454b4e4f502d53494703312e350765643235353139203a3127f5ea0269b5c6cfe92e7eb12dccc190b1e1cedd7faeae3960079542c05520ad95d5fa651ba86d8923fe1238d24a4f1988a752acfe426ac72ac7c04471bc17",
+      "note": "The ordinary v1.5 input: the same construction as si-002 with the version field one value further on. Version 1.5 was added because §6.1 began taking the visible envelope off an HTML part as well, and a reader has to know which reading the fingerprint was taken over. Its hashes and algorithm are si-002's: only the version differs, and the bytes differ with it, so a header edited from 1.5 to 1.4 fails."
+    },
+    {
+      "id": "si-010-separation-a",
+      "version": "1.4",
+      "algorithm": "ed25519",
+      "strict_hash_b64": "OjEn9eoCabXGz+kufrEtzMGQseHO3X+urjlgB5VCwFU=",
+      "free_hash_b64": "rZXV+mUbqG2JI/4SONJKTxmIp1Ks/kJqxyrHwERxvBc=",
+      "signature_input_hex": "5a454b4e4f502d53494703312e340765643235353139203a3127f5ea0269b5c6cfe92e7eb12dccc190b1e1cedd7faeae3960079542c05520ad95d5fa651ba86d8923fe1238d24a4f1988a752acfe426ac72ac7c04471bc17",
+      "note": "Pair with si-011: the same bytes concatenated without lengths would be one string."
+    },
+    {
+      "id": "si-011-separation-b",
+      "version": "1.4e",
+      "algorithm": "d25519",
+      "strict_hash_b64": "OjEn9eoCabXGz+kufrEtzMGQseHO3X+urjlgB5VCwFU=",
+      "free_hash_b64": "rZXV+mUbqG2JI/4SONJKTxmIp1Ks/kJqxyrHwERxvBc=",
+      "signature_input_hex": "5a454b4e4f502d53494704312e346506643235353139203a3127f5ea0269b5c6cfe92e7eb12dccc190b1e1cedd7faeae3960079542c05520ad95d5fa651ba86d8923fe1238d24a4f1988a752acfe426ac72ac7c04471bc17",
+      "note": "Pair with si-010: different fields, therefore different input."
+    }
+  ]
+}

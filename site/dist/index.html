@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--
+  Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
+           https://creativecommons.org/licenses/by/4.0/
+  Publisher: the entity named in the footer of this page
+  Part of: the ZEKNOP Signed Email specification, Developer Preview
+  Date: 2026-10-24
+
+  The page in site/dist/ is built from site/src/index.html: its links into the package
+  are resolved against the location the package is served from, and one of the two
+  sandbox blocks of the source is kept, as site/src/sandbox.json says.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZEKNOP Signed Email — Developer Preview</title>
+<meta name="description" content="The ZEKNOP Signed Email protocol, its test vectors and the public part of a relay's HTTP contract, published for implementers outside the publisher's repository.">
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to the contents of the package</a>
+
+<header class="masthead">
+  <p class="eyebrow">ZEKNOP Signed Email</p>
+  <h1>Developer Preview</h1>
+  <p class="label" role="note">Developer Preview — the protocol and the API may change; nothing on this page is a security guarantee</p>
+  <p class="lede">The protocol, the vectors an implementation is measured against, and the public part of the HTTP contract a relay answers — the package an implementation outside the publisher's repository is written from.</p>
+</header>
+
+<main id="main">
+
+<section aria-labelledby="what-this-is">
+  <h2 id="what-this-is">What this is</h2>
+  <p>ZEKNOP is a protocol for signing an email so that the recipient can decide whether the text in front of them is the text that was signed. A signature is made over hashes of the message content, so what the protocol has to pin down is <em>exactly</em> which bytes are hashed, and in which order — that is what the specification does, and the vectors are how two implementations find out that they read it the same way.</p>
+  <p>This package is the public part of that work: four normative documents, the test vectors and the differential cases with reference answers, the paths a client outside the relay may call, two example clients, and a sandbox deployment to try it against. The current documents are version 1.4; signers of the current build announce <code>X-ZEKNOP-Version: 1.5</code>, and the HTTP contract described here is version 1.8.</p>
+  <p>Everything in the package is a file you can read and run on your own machine: the vectors need no network, no account and no key, and the example clients need nothing installed beyond a current Node.js or Python.</p>
+</section>
+
+<section aria-labelledby="what-this-is-not">
+  <h2 id="what-this-is-not">What this is not</h2>
+  <ul class="plain">
+    <li><strong>Not a product and not an offer.</strong> This is a preview of a protocol and of an API, published so that implementations can be written against them. There is nothing to buy here and nothing to sign up for.</li>
+    <li><strong>Not a guarantee.</strong> Nothing on this page or in this package is a security guarantee, and nothing here is a measurement of security, performance or privacy.</li>
+    <li><strong>Not final.</strong> “Developer Preview” is meant literally: the protocol and the API may change, and the changes are recorded in the two changelogs the package carries.</li>
+    <li><strong>Not a certification.</strong> Agreement with the vectors is a statement about bytes. Nobody is granting a mark, a badge or a licence for a matching report, and nothing here certifies an implementation.</li>
+    <li><strong>Not the server.</strong> The relay's own source is not part of this package. What is here is the contract it answers on the public paths, generated from that application's own schema.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="package">
+  <h2 id="package">What is in the package</h2>
+  <p class="note">The links below point at the files of the package as <code>https://docs.zeknop.org/</code> serves them. The same files are the repository <a href="https://github.com/zeknop/developer-preview"><code>zeknop/developer-preview</code></a>; in a copy of it, they sit under its root.</p>
+
+  <article class="card">
+    <h3>The specification</h3>
+    <p>Four documents: what is hashed, what the signature is made over, what a delivered message looks like, and what changed when. When two of them disagree, the one that is normative for the subject wins — and the README says which that is, step by step, in the order the protocol goes.</p>
+    <ul class="links">
+      <li><a href="https://docs.zeknop.org/spec/README.md"><code>spec/README.md</code></a> — start here: the quick start for v1.4 in seven steps</li>
+      <li><a href="https://docs.zeknop.org/spec/canonical-content.md"><code>spec/canonical-content.md</code></a> — what is hashed</li>
+      <li><a href="https://docs.zeknop.org/spec/signature-input.md"><code>spec/signature-input.md</code></a> — what is signed</li>
+      <li><a href="https://docs.zeknop.org/spec/delivered-envelope.md"><code>spec/delivered-envelope.md</code></a> — what is delivered, and how a verifier takes it off</li>
+      <li><a href="https://docs.zeknop.org/spec/CHANGELOG.md"><code>spec/CHANGELOG.md</code></a> — the normative changes, version by version</li>
+    </ul>
+    <p class="meta">Licence: CC BY 4.0. Each copied document carries the digest of the file it came from; the README of that directory is new text and carries none.</p>
+  </article>
+
+  <article class="card">
+    <h3>The test vectors</h3>
+    <p>253 hand-written vectors in seven files, each holding inputs and the answers the specification requires for them, with a generator beside five of them that rebuilds the JSON from rules typed out of the specification and reports any difference, a validator that recomputes 71 of the 72 hashes in the largest file and reports the one it cannot, and no script at all for the six timestamp vectors, which are decisions rather than derived values. Beside them, 5&nbsp;329 seeded differential cases ask the same questions over generated inputs — trim characters and their neighbours, line endings and their mixtures, combining sequences, character references, markup edges, forwards and replies, declared encodings over valid and invalid bytes — and carry the answers of a reference implementation.</p>
+    <ul class="links">
+      <li><a href="https://docs.zeknop.org/vectors/README.md"><code>vectors/README.md</code></a> — what each file fixes, and how to run it</li>
+      <li><a href="https://docs.zeknop.org/vectors/CONFORMANCE.md"><code>vectors/CONFORMANCE.md</code></a> — what to compare per file, and one report format so that two results can be read side by side</li>
+      <li><a href="https://docs.zeknop.org/vectors/differential/cases.json"><code>vectors/differential/cases.json</code></a> — the seeded cases with their reference answers</li>
+    </ul>
+    <p class="meta">Licence: CC BY 4.0. Python 3.11 or newer, standard library only.</p>
+  </article>
+
+  <article class="card">
+    <h3>The public HTTP contract</h3>
+    <p>The paths a client needs in order to check a signature it received or to sign a message through a relay, the paths a verification portal reaches without a credential, and the paths by which an identity is obtained in a deployment that onboards without an external identity provider. The machine-readable document is generated from the relay's own schema and filtered to those paths; the README carries what a schema cannot state — what an answer means, and what a caller may do with it. Administration, billing, tenant configuration, signing keys, revocation and erasure are not part of this preview.</p>
+    <ul class="links">
+      <li><a href="https://docs.zeknop.org/api/README.md"><code>api/README.md</code></a> — the semantics, path by path, with the status codes as they are</li>
+      <li><a href="https://docs.zeknop.org/api/openapi-public.json"><code>api/openapi-public.json</code></a> — the OpenAPI document for the public paths (contract 1.8)</li>
+      <li><a href="https://docs.zeknop.org/api/API-CHANGELOG.md"><code>api/API-CHANGELOG.md</code></a> — what changed for a caller, and when</li>
+    </ul>
+    <p class="meta">Licence: CC BY 4.0. No server is listed in the OpenAPI document: the base URL is the relay you were given.</p>
+  </article>
+
+  <article class="card">
+    <h3>The example clients</h3>
+    <p>Two small clients, each with the same three entry points: <code>verify</code> takes an <code>.eml</code> file, recomputes the hashes and asks a relay for the verdict (or, offline, only recomputes and compares against the headers); <code>sign</code> has a relay sign a message for an identity whose key you hold; <code>conformance</code> runs every vector file and the differential cases and prints the report. They are examples and not libraries: the JavaScript one has no run-time dependencies, the Python one is standard library only, and neither carries a warranty.</p>
+    <ul class="links">
+      <li><a href="https://docs.zeknop.org/examples/js/README.md"><code>examples/js/README.md</code></a> — the JavaScript client (Node.js 20 or newer)</li>
+      <li><a href="https://docs.zeknop.org/examples/python/README.md"><code>examples/python/README.md</code></a> — the Python client (3.11 or newer)</li>
+    </ul>
+    <p class="meta">Licence: Apache-2.0, with <code>LICENSE</code> and <code>NOTICE</code> in each directory.</p>
+  </article>
+
+  <article class="card">
+    <h3>The sandbox</h3>
+    <p>A relay deployment to try an implementation against, with a shared test identity, so that nobody has to register anywhere to send one signed message. <strong>Sandbox follows:</strong> its address and its shared identity are not published yet, and until they are, the clients run against a relay of your own.</p>
+    <ul class="links">
+      <li><a href="https://docs.zeknop.org/sandbox/README.md"><code>sandbox/README.md</code></a> — what the sandbox switch changes, and how an operator deploys one</li>
+    </ul>
+    <p class="meta">A signature made in a sandbox is a signature by an identity a production relay does not know. Verified against one, it reads as an unknown identity — not as a changed message.</p>
+  </article>
+</section>
+
+<section aria-labelledby="start">
+  <h2 id="start">Where to start</h2>
+  <ol class="steps">
+    <li>Read the quick start in <a href="https://docs.zeknop.org/spec/README.md"><code>spec/README.md</code></a>. It walks the seven steps in the order the protocol goes, and names the vectors beside the steps they hold.</li>
+    <li>Run the vectors against your implementation, file by file, and then the differential cases. <a href="https://docs.zeknop.org/vectors/README.md"><code>vectors/README.md</code></a> says what each file holds and how to run it.</li>
+    <li>Report the result in the format <a href="https://docs.zeknop.org/vectors/CONFORMANCE.md"><code>vectors/CONFORMANCE.md</code></a> fixes, with the digests of the vector files you actually read.</li>
+    <li>Read <a href="https://docs.zeknop.org/api/README.md"><code>api/README.md</code></a> before you call a relay: the answers that are statements about a message, and the ones that are statements about the relay, are not the same answers.</li>
+    <li>Compare against an example client when a hash comes out differently — <a href="https://docs.zeknop.org/examples/js/README.md">the JavaScript one</a> or <a href="https://docs.zeknop.org/examples/python/README.md">the Python one</a>. Both of them run the vectors as well, which makes them the shortest way to see which step disagrees.</li>
+  </ol>
+</section>
+
+<section aria-labelledby="licence">
+  <h2 id="licence">Licences</h2>
+  <p>The specification, the vectors and the documents describing the HTTP contract are published under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">Creative Commons Attribution 4.0 International (CC BY 4.0)</a>: use them, quote them and build on them, with attribution to the publisher named at the foot of this page.</p>
+  <p>The example clients are published under the <a href="https://www.apache.org/licenses/LICENSE-2.0" rel="license">Apache License 2.0</a>, with the licence text and a <code>NOTICE</code> file in each client's directory.</p>
+  <p>Where a file in the package carries a licence header of its own, that header is what names its licence.</p>
+</section>
+
+<section aria-labelledby="page">
+  <h2 id="page">About this page</h2>
+  <p>This page loads nothing from anywhere else: no script, no web font, no third-party service. It is two plain files, it works with JavaScript turned off, and it is built from its own source by a small program that resolves the links above against whichever location the package is served from.</p>
+</section>
+
+</main>
+
+<footer>
+  <p>© 2026 Zeknod OÜ.</p>
+  <p>Zeknod® is a registered trade mark of Zeknod OÜ (EUTM 019305293).</p>
+</footer>
+
+</body>
+</html>

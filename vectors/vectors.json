@@ -1,0 +1,1889 @@
+{
+  "version": "2.4",
+  "specification": "canonical-content.md v1.3",
+  "reference": "spec/canonical-content.md",
+  "hash_algorithm": "SHA-256",
+  "hash_encoding": "standard base64 (padded)",
+  "json_separators": [
+    ",",
+    ":"
+  ],
+  "json_encoding": "UTF-8, ensure_ascii=false",
+  "field_order": [
+    "from",
+    "to",
+    "subject",
+    "body",
+    "timestamp",
+    "attachments?",
+    "html?",
+    "inline?"
+  ],
+  "max_body_size": 1048576,
+  "generated_at": "2026-08-09",
+  "generated_by": "Hand-written inputs, Python SHA-256, cross-validated with Node.js crypto",
+  "vector_count": 72,
+  "categories": {
+    "body_normalization": "body-001 through body-013 (BOM inc. UTF-16 LE/BE, line endings, whitespace, blank lines)",
+    "recipient_parsing": "rcpt-001 through rcpt-013 (angle brackets, display names, case, order, quoted, comments, comma-in-display-name; rcpt-010+ add raw_headers wire forms: duplicate To instances, interleaved To/Cc, raw display-name, raw quoted local-part)",
+    "unicode": "unicode-001 through unicode-004 (Czech, emoji, CJK, Arabic RTL)",
+    "address_edge_cases": "addr-001 through addr-004 (IDN, long local, subdomains, punycode)",
+    "subject": "subj-001 through subj-007 (whitespace trim, empty, internal whitespace, RFC 2047 UTF-8 B, UTF-8 Q, adjacent encoded-words, duplicate Subject instances)",
+    "from_selection": "from-001 through from-002 (duplicate From instances, multi-mailbox From: first instance, first mailbox)",
+    "end_to_end": "e2e-001 through e2e-003 (full pipeline, minimal, truncation)",
+    "parts_manifest": "parts-001 through parts-008 + shape-a-001 (v1.3 §9: document-order manifest, container-vs-leaf, rfc822 opaque, kind classification, n-omission, Shape A anchor). Replaces retired v1.2 attach-*/html-*/inline-*/mixed-* vectors.",
+    "declared_charset": "shape-a-002 through shape-a-007 + parts-009 (§2 text read through the declared charset: ISO-8859-2, windows-1250 and ISO-8859-1, each 8bit and quoted-printable; the leaf carries the exact wire payload in payload_base64 and the text it reads as in text)",
+    "declared_charset_every_high_byte": "shape-a-008 through shape-a-012 + parts-010 (§2 a legacy single-byte charset is read the way the recipient's client reads it, WHATWG Encoding Standard: every byte 0x80-0xFF under iso-8859-1, latin1 and us-ascii (windows-1252), windows-1250 (its undefined bytes read as U+0081, U+0083, U+0088, U+0090, U+0098) and iso-8859-2; the index data is the single-byte indexes of the WHATWG Encoding Standard)",
+    "trim_edges": "shape-a-013, shape-a-014 + parts-011 (§2 step 4 trim set: exactly the characters ECMAScript String.prototype.trim removes - U+0009-U+000D, U+0020, U+00A0, U+1680, U+2000-U+200A, U+2028, U+2029, U+202F, U+205F, U+3000, U+FEFF; Python's bare str.strip() also removes U+001C-U+001F and U+0085 and keeps U+FEFF)"
+  },
+  "vectors": [
+    {
+      "id": "body-001-utf8-bom",
+      "description": "UTF-8 BOM (U+FEFF) at start of body must be stripped",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "BOM Test",
+        "body": "﻿Hello world",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "Hello world",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"BOM Test\",\"body\":\"Hello world\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "rk7JdQs6Jm6VbO5qPcKYHb4/32PUKJWsA5nMjsPG05g="
+      }
+    },
+    {
+      "id": "body-002-bom-mid-text",
+      "description": "U+FEFF not at position 0 must be preserved (zero-width no-break space)",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "BOM Mid",
+        "body": "Hello﻿ world",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "Hello﻿ world",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"BOM Mid\",\"body\":\"Hello﻿ world\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "9WdJ+uCjncfqCR/3uUuuqfY4D4BLKFiRfiQxsOmdLK8="
+      }
+    },
+    {
+      "id": "body-003-lone-cr",
+      "description": "Lone CR (old Mac line endings) must be normalized to LF",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Lone CR",
+        "body": "Line1\rLine2\rLine3",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "Line1\nLine2\nLine3",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Lone CR\",\"body\":\"Line1\\nLine2\\nLine3\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "4m2dZ2XJIKNDZHK3M/vka4PWgWP7vCWiDLCGR3yvjWo="
+      }
+    },
+    {
+      "id": "body-004-crlf",
+      "description": "CRLF line endings must be normalized to LF",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "CRLF",
+        "body": "Line1\r\nLine2\r\nLine3",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "Line1\nLine2\nLine3",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"CRLF\",\"body\":\"Line1\\nLine2\\nLine3\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "cr3bZa7duHZsiXpw72blpMqVv2RTrfiQd9FM+a2W0+E="
+      }
+    },
+    {
+      "id": "body-005-mixed-line-endings",
+      "description": "Mixed CRLF + lone CR + LF must all normalize to LF",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Mixed",
+        "body": "A\r\nB\rC\nD",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "A\nB\nC\nD",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Mixed\",\"body\":\"A\\nB\\nC\\nD\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "rJiM+tbkG8IGZXLZT5kn848a5kYrBIVEJJqm4QwOTho="
+      }
+    },
+    {
+      "id": "body-006-trailing-whitespace",
+      "description": "Trailing spaces and tabs per line must be stripped",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Trailing WS",
+        "body": "Hello   \nWorld\t\t\n",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "Hello\nWorld",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Trailing WS\",\"body\":\"Hello\\nWorld\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "y448VsHZdo0hsHyUsF5TwKpe58TYAx5q+VRnJyPfT4M="
+      }
+    },
+    {
+      "id": "body-007-blank-lines-preserved",
+      "description": "Multiple blank lines must NOT be collapsed (C2 regression test)",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Blank Lines",
+        "body": "Para1\n\n\nPara2\n\nPara3",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "Para1\n\n\nPara2\n\nPara3",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Blank Lines\",\"body\":\"Para1\\n\\n\\nPara2\\n\\nPara3\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "bUpaM721I0I1CfxC9Q0HBIoH+wdixGsDbahhg/y8PWc="
+      }
+    },
+    {
+      "id": "body-008-empty",
+      "description": "Empty body string must produce empty body in canonical object",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Empty",
+        "body": "",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Empty\",\"body\":\"\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "YGrzDuS8/VMZFnc/wHgMAb1ypV85eVjIMLrSGFpEdAw="
+      }
+    },
+    {
+      "id": "body-009-single-char",
+      "description": "Single character body",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Single",
+        "body": "X",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "X",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Single\",\"body\":\"X\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "OtRFCiwRsL9b4kCSZxsJV32zD7AE5WTXrylLDwR0kgo="
+      }
+    },
+    {
+      "id": "body-010-whitespace-only",
+      "description": "Whitespace-only body normalizes to empty string",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Whitespace",
+        "body": "   \n\t\n   ",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Whitespace\",\"body\":\"\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "XHTmpIr00lsFvLb+zXtuUKSmKkwC0uNJD0fyRHYAkCA="
+      }
+    },
+    {
+      "id": "body-011-combined-normalization",
+      "description": "BOM + CRLF + trailing whitespace combined normalization",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Combined",
+        "body": "﻿Hello  \r\nWorld\t\r\n",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "Hello\nWorld",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Combined\",\"body\":\"Hello\\nWorld\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "UhQGwbpYH1SLwLgY8ZaHvvYs3qxmsy9HRSMB6ZJxnps="
+      }
+    },
+    {
+      "id": "body-012-utf16-le-bom",
+      "description": "UTF-16 LE BOM (bytes FF FE) must be detected at byte level, email decoded to UTF-8, BOM stripped, warning logged. Canonical form is the decoded UTF-8 text without BOM.",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "UTF-16 LE test",
+        "body": "Hi",
+        "body_bytes_hex": "FFFE48006900",
+        "body_encoding": "utf-16-le",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "Hi",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"UTF-16 LE test\",\"body\":\"Hi\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "JWnrbKwhlNKNzmudbFsP0pz+Ukb4yy8aUJ9Qe+yo2RM=",
+        "warning_logged": true
+      }
+    },
+    {
+      "id": "body-013-utf16-be-bom",
+      "description": "UTF-16 BE BOM (bytes FE FF) must be detected at byte level, email decoded to UTF-8, BOM stripped, warning logged. Canonical form is the decoded UTF-8 text without BOM.",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "UTF-16 BE test",
+        "body": "Hi",
+        "body_bytes_hex": "FEFF00480069",
+        "body_encoding": "utf-16-be",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_body": "Hi",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"UTF-16 BE test\",\"body\":\"Hi\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "9gG+4rKJnxQ/4dW+QjiBpemW2655Hh7bdlT7Wr0JlHg=",
+        "warning_logged": true
+      }
+    },
+    {
+      "id": "rcpt-001-angle-brackets",
+      "description": "Angle bracket addresses must be extracted to bare form",
+      "input": {
+        "from": "<sender@example.com>",
+        "to": [
+          "<alice@example.com>"
+        ],
+        "subject": "Test",
+        "body": "Hello",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_from": "sender@example.com",
+        "canonical_to": "alice@example.com",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"alice@example.com\",\"subject\":\"Test\",\"body\":\"Hello\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "3INO2PW4NK8Tkvieb5IueKkputaoOqe2UQf12n4MfHM="
+      }
+    },
+    {
+      "id": "rcpt-002-display-names",
+      "description": "Display names must be stripped, only addr-spec preserved",
+      "input": {
+        "from": "Alice Smith <alice@example.com>",
+        "to": [
+          "\"Bob Jones\" <bob@example.org>",
+          "Carol <carol@example.net>"
+        ],
+        "subject": "Meeting",
+        "body": "Hi all",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_from": "alice@example.com",
+        "canonical_to": "bob@example.org, carol@example.net",
+        "canonical_json": "{\"from\":\"alice@example.com\",\"to\":\"bob@example.org, carol@example.net\",\"subject\":\"Meeting\",\"body\":\"Hi all\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "xtgct0iGyrDHOYxDQ8CHx5za4D2J1uTf47SwaGm866k="
+      }
+    },
+    {
+      "id": "rcpt-003-case-normalization",
+      "description": "Email addresses must be lowercased",
+      "input": {
+        "from": "User@Example.COM",
+        "to": [
+          "Admin@Example.ORG"
+        ],
+        "subject": "Case",
+        "body": "test",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_from": "user@example.com",
+        "canonical_to": "admin@example.org",
+        "canonical_json": "{\"from\":\"user@example.com\",\"to\":\"admin@example.org\",\"subject\":\"Case\",\"body\":\"test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "G+VNsYN5j0hBgDMUhoEO1kgK4gMVDoQEFPoQpDttdHE="
+      }
+    },
+    {
+      "id": "rcpt-004-order-preserved",
+      "description": "Recipient order must be preserved (NOT sorted)",
+      "input": {
+        "from": "sender@x.com",
+        "to": [
+          "charlie@c.com",
+          "alice@a.com",
+          "bob@b.com"
+        ],
+        "subject": "Order",
+        "body": "test",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_to": "charlie@c.com, alice@a.com, bob@b.com",
+        "canonical_json": "{\"from\":\"sender@x.com\",\"to\":\"charlie@c.com, alice@a.com, bob@b.com\",\"subject\":\"Order\",\"body\":\"test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "y/T5XdrBYZPj2wcWyXaiMoDzc2h/VrEI2r3d1twDUdI="
+      }
+    },
+    {
+      "id": "rcpt-005-quoted-local",
+      "description": "Quoted local parts: quotes stripped from local-part for cross-component consistency",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "\"foo bar\"@example.com"
+        ],
+        "subject": "Quoted",
+        "body": "test",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_to": "foo bar@example.com",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"foo bar@example.com\",\"subject\":\"Quoted\",\"body\":\"test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "VM1JWnBnX9oflwDClKZykTgGAtyrR/sbSKiLWnuSW1g="
+      }
+    },
+    {
+      "id": "rcpt-006-rfc5322-comment",
+      "description": "RFC 5322 comments in display name area must be stripped",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "John (CEO) <john@example.com>"
+        ],
+        "subject": "Comment",
+        "body": "test",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_to": "john@example.com",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"john@example.com\",\"subject\":\"Comment\",\"body\":\"test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "BJiTNXx8EinCZ98r0RyDhtWegRtyjwGGTX8wu5uFEBg="
+      }
+    },
+    {
+      "id": "rcpt-007-to-plus-cc",
+      "description": "To and Cc recipients are concatenated in order (To first, then Cc)",
+      "input": {
+        "from": "sender@example.com",
+        "to_header": "to1@example.com",
+        "cc_header": "cc1@example.com, cc2@example.com",
+        "to": [
+          "to1@example.com",
+          "cc1@example.com",
+          "cc2@example.com"
+        ],
+        "subject": "ToCc",
+        "body": "test",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_to": "to1@example.com, cc1@example.com, cc2@example.com",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"to1@example.com, cc1@example.com, cc2@example.com\",\"subject\":\"ToCc\",\"body\":\"test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "qtRnBLnd+T4+Tgqef5LgbxRNHgGYB4qr5NA71bwEvOQ="
+      }
+    },
+    {
+      "id": "rcpt-008-empty-recipients",
+      "description": "No recipients produces empty to field",
+      "input": {
+        "from": "sender@example.com",
+        "to": [],
+        "subject": "No Rcpt",
+        "body": "test",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_to": "",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"\",\"subject\":\"No Rcpt\",\"body\":\"test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "+B1i1JquJtEaIyHYIrqDbmBu2H9Une7oyrrIkfKK4mg="
+      }
+    },
+    {
+      "id": "rcpt-009-comma-in-display-name",
+      "description": "A display name containing a comma must NOT be split — 'Novák, Jan' <jan@x.cz> is one address, not two. A naive split(',') breaks this. Every implementation must produce the same bare address list, which means the split has to be RFC 5322 aware.",
+      "note": "raw_to_header simulates a single To header value as delivered to the TB verifier (verify path). The 'to' array simulates the pre-split form used by the signing path (TB compose API already splits per-recipient). Both paths must yield the same canonical_to.",
+      "input": {
+        "from": "sender@example.com",
+        "raw_to_header": "\"Novák, Jan\" <jan@x.cz>, bob@example.org",
+        "to": [
+          "\"Novák, Jan\" <jan@x.cz>",
+          "bob@example.org"
+        ],
+        "subject": "Test",
+        "body": "Hello",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_to": "jan@x.cz, bob@example.org",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"jan@x.cz, bob@example.org\",\"subject\":\"Test\",\"body\":\"Hello\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "e+MQTunToQWWghIkljEt9FmZtrwkFsWY496d1ZWPvpw="
+      }
+    },
+    {
+      "id": "unicode-001-czech-diacritics",
+      "description": "Czech diacritics in all fields, tests UTF-8 encoding",
+      "input": {
+        "from": "kontakt@firma.cz",
+        "to": [
+          "zákazník@example.cz"
+        ],
+        "subject": "Potvrzení objednávky č. 42",
+        "body": "Dobrý den,\n\nVaše objednávka byla přijata.\n\nS pozdravem,\nTým firmy",
+        "timestamp": "2026-02-14T12:00:00.000Z"
+      },
+      "expected": {
+        "canonical_json": "{\"from\":\"kontakt@firma.cz\",\"to\":\"zákazník@example.cz\",\"subject\":\"Potvrzení objednávky č. 42\",\"body\":\"Dobrý den,\\n\\nVaše objednávka byla přijata.\\n\\nS pozdravem,\\nTým firmy\",\"timestamp\":\"2026-02-14T12:00:00.000Z\"}",
+        "content_hash": "fTnWrWGrtRYKMSTnGZxJkEsJHI2EpigPGe2T4EMlHeI="
+      }
+    },
+    {
+      "id": "unicode-002-emoji",
+      "description": "Emoji in subject and body (multi-byte UTF-8)",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Hello 🌍",
+        "body": "Message with emoji: 👋🏻\n\nEnd.",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Hello 🌍\",\"body\":\"Message with emoji: 👋🏻\\n\\nEnd.\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "V3+2Cjckk0l4LE1SVR8fwjXS6p8EnZqvT6HiqfZA+tU="
+      }
+    },
+    {
+      "id": "unicode-003-cjk",
+      "description": "CJK characters in subject and body",
+      "input": {
+        "from": "user@example.jp",
+        "to": [
+          "admin@example.cn"
+        ],
+        "subject": "会議の議事録",
+        "body": "こんにちは、\n\n会議の日程をお知らせします。",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_json": "{\"from\":\"user@example.jp\",\"to\":\"admin@example.cn\",\"subject\":\"会議の議事録\",\"body\":\"こんにちは、\\n\\n会議の日程をお知らせします。\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "z99vaQBJ1fuQ8z2bejfaa+4oMq9sMOgs5viUudeQn84="
+      }
+    },
+    {
+      "id": "unicode-004-rtl-arabic",
+      "description": "RTL Arabic text in subject and body",
+      "input": {
+        "from": "user@example.sa",
+        "to": [
+          "admin@example.com"
+        ],
+        "subject": "مرحبا",
+        "body": "هذه رسالة اختبار",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_json": "{\"from\":\"user@example.sa\",\"to\":\"admin@example.com\",\"subject\":\"مرحبا\",\"body\":\"هذه رسالة اختبار\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "acD600eaVzIjZwkwN6DmJ/DeHtlXQoiOfey0Mdp1z5M="
+      }
+    },
+    {
+      "id": "addr-001-unicode-domain",
+      "description": "Unicode (IDN) domain name preserved as-is in canonical form",
+      "input": {
+        "from": "user@münchen.de",
+        "to": [
+          "admin@example.com"
+        ],
+        "subject": "IDN Test",
+        "body": "test",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_from": "user@münchen.de",
+        "canonical_json": "{\"from\":\"user@münchen.de\",\"to\":\"admin@example.com\",\"subject\":\"IDN Test\",\"body\":\"test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "Lkb5lCHK1ifNzspag7Sh/+yCLQJ/2zlL2mTUCkxAM9c="
+      }
+    },
+    {
+      "id": "addr-002-long-local",
+      "description": "Maximum length local part (64 characters)",
+      "input": {
+        "from": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Long",
+        "body": "test",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_json": "{\"from\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com\",\"to\":\"user@example.com\",\"subject\":\"Long\",\"body\":\"test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "7IbMWcn29HDFCNJQO7Az+GzIjdjuOorSRgd2/36V9Mg="
+      }
+    },
+    {
+      "id": "addr-003-subdomains",
+      "description": "Multi-level subdomain addresses",
+      "input": {
+        "from": "user@mail.sub.example.co.uk",
+        "to": [
+          "admin@deep.nested.example.org"
+        ],
+        "subject": "Sub",
+        "body": "test",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_json": "{\"from\":\"user@mail.sub.example.co.uk\",\"to\":\"admin@deep.nested.example.org\",\"subject\":\"Sub\",\"body\":\"test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "0RxKWGeYCQ+oUTCQvlaTEubQZFP6f+wR7++v/opu3iw="
+      }
+    },
+    {
+      "id": "addr-004-punycode-preserved",
+      "description": "Punycode (ACE) domain is preserved as-is in canonical form — implementations MUST NOT convert to unicode IDN",
+      "input": {
+        "from": "user@xn--bcher-kva.example",
+        "to": [
+          "recipient@xn--nxasmq6b.example"
+        ],
+        "subject": "Punycode",
+        "body": "Body",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_json": "{\"from\":\"user@xn--bcher-kva.example\",\"to\":\"recipient@xn--nxasmq6b.example\",\"subject\":\"Punycode\",\"body\":\"Body\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "vK808D2L0YULllpVy4xYUeLQErSHAeEkqYFlTk+EBYc="
+      }
+    },
+    {
+      "id": "subj-001-whitespace-trim",
+      "description": "Subject leading/trailing whitespace must be trimmed",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "  Hello World  ",
+        "body": "test",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_subject": "Hello World",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Hello World\",\"body\":\"test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "MV2omKxcl4akYQIae+rg2XW+0S8RH+fSPtqmevCn6dA="
+      }
+    },
+    {
+      "id": "subj-002-empty",
+      "description": "Empty subject is valid",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "",
+        "body": "No subject email",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_subject": "",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"\",\"body\":\"No subject email\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "4PFCd3BkJ5Pb358OXO1WYXAJJoxIUAFEUN/pXaHxv/o="
+      }
+    },
+    {
+      "id": "subj-003-internal-whitespace",
+      "description": "Subject internal whitespace (including tabs) MUST be preserved; only leading/trailing whitespace is trimmed",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "  Hello\tworld  ",
+        "body": "Body",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_subject": "Hello\tworld",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Hello\\tworld\",\"body\":\"Body\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "GuyR/a20aC5aqn7VgsOEJPwT3XOz7xyWmrCKYo+ckdI="
+      }
+    },
+    {
+      "id": "subj-004-rfc2047-utf8-base64-czech",
+      "description": "RFC 2047 UTF-8 Base64 encoded Czech subject: signer MUST decode =?UTF-8?B?...?= to Unicode before hashing; verifiers already receive decoded Unicode",
+      "input": {
+        "from": "kontakt@firma.cz",
+        "to": [
+          "zakaznik@example.cz"
+        ],
+        "subject_raw_mime": "=?UTF-8?B?UG90dnJ6ZW7DrSBvYmplZG7DoXZreQ==?=",
+        "subject": "Potvrzení objednávky",
+        "body": "Objednávka potvrzena.",
+        "timestamp": "2026-06-01T10:00:00.000Z"
+      },
+      "expected": {
+        "canonical_subject": "Potvrzení objednávky",
+        "canonical_json": "{\"from\":\"kontakt@firma.cz\",\"to\":\"zakaznik@example.cz\",\"subject\":\"Potvrzení objednávky\",\"body\":\"Objednávka potvrzena.\",\"timestamp\":\"2026-06-01T10:00:00.000Z\"}",
+        "content_hash": "XDHruQd/N84D8HQuGnkh1an1jlp2Qfv/f0ZEJTwpviU="
+      }
+    },
+    {
+      "id": "subj-005-rfc2047-utf8-q-encoded",
+      "description": "RFC 2047 UTF-8 Quoted-Printable encoded subject with _ (space) and =XX hex sequences: must decode to Unicode before hashing",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject_raw_mime": "=?UTF-8?Q?=C5=BDadost_o_v=C4=9Bc?=",
+        "subject": "Žadost o věc",
+        "body": "Test body",
+        "timestamp": "2026-06-01T10:00:00.000Z"
+      },
+      "expected": {
+        "canonical_subject": "Žadost o věc",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Žadost o věc\",\"body\":\"Test body\",\"timestamp\":\"2026-06-01T10:00:00.000Z\"}",
+        "content_hash": "2C3J5oBz5embAvG/Xh1jT5lizFqDMUz2q2y1BSU2AwI="
+      }
+    },
+    {
+      "id": "subj-006-rfc2047-adjacent-encoded-words",
+      "description": "RFC 2047 adjacent encoded-words separated only by whitespace: whitespace between them MUST be discarded (RFC 2047 §6.2), producing 'foobar' not 'foo bar'",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject_raw_mime": "=?UTF-8?B?Zm9v?= =?UTF-8?B?YmFy?=",
+        "subject": "foobar",
+        "body": "Adjacent test",
+        "timestamp": "2026-06-01T10:00:00.000Z"
+      },
+      "expected": {
+        "canonical_subject": "foobar",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"foobar\",\"body\":\"Adjacent test\",\"timestamp\":\"2026-06-01T10:00:00.000Z\"}",
+        "content_hash": "WrPT1F99UbffIFf4RBF5qTbZsYxFDntArnlR7Jw92r4="
+      }
+    },
+    {
+      "id": "e2e-001-full-pipeline",
+      "description": "Realistic email: display names, CRLF body, trailing whitespace, BOM",
+      "input": {
+        "from": "John CEO <ceo@acme.com>",
+        "to": [
+          "Alice <alice@example.com>"
+        ],
+        "cc": [
+          "Bob <bob@example.org>"
+        ],
+        "subject": "Q1 Board Update",
+        "body": "﻿Dear Board,  \r\n\r\nPlease find the Q1 results attached.\t\r\n\r\nKey highlights:\r\n- Revenue up 15%\r\n- Churn down 2%  \r\n\r\nBest regards,\r\nJohn\r\n",
+        "timestamp": "2026-03-31T09:00:00.000Z"
+      },
+      "expected": {
+        "canonical_from": "ceo@acme.com",
+        "canonical_to": "alice@example.com, bob@example.org",
+        "canonical_subject": "Q1 Board Update",
+        "canonical_body": "Dear Board,\n\nPlease find the Q1 results attached.\n\nKey highlights:\n- Revenue up 15%\n- Churn down 2%\n\nBest regards,\nJohn",
+        "canonical_json": "{\"from\":\"ceo@acme.com\",\"to\":\"alice@example.com, bob@example.org\",\"subject\":\"Q1 Board Update\",\"body\":\"Dear Board,\\n\\nPlease find the Q1 results attached.\\n\\nKey highlights:\\n- Revenue up 15%\\n- Churn down 2%\\n\\nBest regards,\\nJohn\",\"timestamp\":\"2026-03-31T09:00:00.000Z\"}",
+        "content_hash": "j8adNRkXETLSN8BPjzso8gtEcS48pNyQQpRwpqkXypA="
+      }
+    },
+    {
+      "id": "e2e-002-minimal",
+      "description": "Minimal email, no normalization needed, baseline hash",
+      "input": {
+        "from": "a@b.com",
+        "to": [
+          "c@d.com"
+        ],
+        "subject": "Hi",
+        "body": "Ok",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_json": "{\"from\":\"a@b.com\",\"to\":\"c@d.com\",\"subject\":\"Hi\",\"body\":\"Ok\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "fYvEXlB59NXTqji6suS6+slfUNnJsfQR4KUdN88BeDA="
+      }
+    },
+    {
+      "id": "e2e-003-body-truncation",
+      "description": "Body exceeding 1MB must be truncated to exactly 1,048,576 characters",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Large",
+        "body_description": "1,049,000 characters of A",
+        "body_length": 1049000,
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "truncated_body_length": 1048576,
+        "content_hash": "hCS4SAc5XPU1RWQn69pA4a2hKmgVqKAFwF5cKYrqTXM=",
+        "note": "Hash computed with body truncated to 1,048,576 chars of A"
+      }
+    },
+    {
+      "id": "rcpt-010-duplicate-to-instances",
+      "description": "Duplicate To header instances — ALL instances contribute, in order. raw_headers is the wire form (one [name, value] pair per header line); 'to' is the merged array form a mail API may hand over instead. A reader that joins the instances into one unparseable string, or that keeps only the first or only the last, builds a different canonical object — which is why this vector carries both forms of the same message.",
+      "input": {
+        "from": "sender@example.com",
+        "raw_headers": [
+          [
+            "To",
+            "a@x.com"
+          ],
+          [
+            "To",
+            "b@y.com"
+          ]
+        ],
+        "to": [
+          "a@x.com",
+          "b@y.com"
+        ],
+        "subject": "Test",
+        "body": "Hello",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_to": "a@x.com, b@y.com",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"a@x.com, b@y.com\",\"subject\":\"Test\",\"body\":\"Hello\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "UpowurpUmzVXz2glENwVcv2886RRtF3RSxdcu9VXhWQ="
+      }
+    },
+    {
+      "id": "rcpt-011-interleaved-to-cc",
+      "description": "Interleaved To/Cc instances group as ALL To values first, then ALL Cc values — not arrival order.",
+      "input": {
+        "from": "sender@example.com",
+        "raw_headers": [
+          [
+            "To",
+            "a@x.com"
+          ],
+          [
+            "Cc",
+            "c@z.com"
+          ],
+          [
+            "To",
+            "b@y.com"
+          ]
+        ],
+        "to": [
+          "a@x.com",
+          "b@y.com"
+        ],
+        "cc": [
+          "c@z.com"
+        ],
+        "subject": "Test",
+        "body": "Hello",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_to": "a@x.com, b@y.com, c@z.com",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"a@x.com, b@y.com, c@z.com\",\"subject\":\"Test\",\"body\":\"Hello\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "fpWqiWEFNhLQSecZ5Dl/NbG5U+WmeIYGjkESYW5Zs/Y="
+      }
+    },
+    {
+      "id": "rcpt-012-raw-display-name-to",
+      "description": "The RAW wire form of a display-name To. It must canonicalize to the same bare address (and therefore the same content_hash) as rcpt-001's bare form. A stored header value that keeps its trailing line ending can make an address parser return nothing at all, and a fallback split(',') then leaks the display name into the canonical string: trim the value before parsing it.",
+      "input": {
+        "from": "sender@example.com",
+        "raw_headers": [
+          [
+            "To",
+            "Alice Example <alice@example.com>"
+          ]
+        ],
+        "to": [
+          "Alice Example <alice@example.com>"
+        ],
+        "subject": "Test",
+        "body": "Hello",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_to": "alice@example.com",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"alice@example.com\",\"subject\":\"Test\",\"body\":\"Hello\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "3INO2PW4NK8Tkvieb5IueKkputaoOqe2UQf12n4MfHM="
+      }
+    },
+    {
+      "id": "rcpt-013-raw-quoted-local-part",
+      "description": "Quoted local-part in the raw wire form: quotes are stripped identically by all four implementations (stripLocalQuotes / _strip_local_quotes).",
+      "input": {
+        "from": "sender@example.com",
+        "raw_headers": [
+          [
+            "To",
+            "\"john doe\"@example.com"
+          ]
+        ],
+        "to": [
+          "\"john doe\"@example.com"
+        ],
+        "subject": "Test",
+        "body": "Hello",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_to": "john doe@example.com",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"john doe@example.com\",\"subject\":\"Test\",\"body\":\"Hello\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "23XRW1cKv8XvxYHfTQQB28Gf73Kg8rkEnMc5HYdD/nA="
+      }
+    },
+    {
+      "id": "subj-007-duplicate-subject-instances",
+      "description": "Duplicate Subject header instances — the FIRST instance wins, in every implementation. A smuggled second Subject must not reach the canonical hash, and its decode errors must be ignored.",
+      "input": {
+        "from": "sender@example.com",
+        "raw_headers": [
+          [
+            "To",
+            "user@example.com"
+          ],
+          [
+            "Subject",
+            "real subject"
+          ],
+          [
+            "Subject",
+            "smuggled subject"
+          ]
+        ],
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "real subject",
+        "body": "Hello",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_subject": "real subject",
+        "canonical_to": "user@example.com",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"real subject\",\"body\":\"Hello\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "TDkPG0egiQhTX1LHKTEWMYBMwJ6TN90ukJTQ+xDP3FM="
+      }
+    },
+    {
+      "id": "from-001-duplicate-from-instances",
+      "description": "Duplicate From header instances — the FIRST instance wins, in every implementation.",
+      "input": {
+        "raw_headers": [
+          [
+            "From",
+            "first@example.com"
+          ],
+          [
+            "From",
+            "second@example.com"
+          ],
+          [
+            "To",
+            "user@example.com"
+          ]
+        ],
+        "from": "first@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Test",
+        "body": "Hello",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_from": "first@example.com",
+        "canonical_to": "user@example.com",
+        "canonical_json": "{\"from\":\"first@example.com\",\"to\":\"user@example.com\",\"subject\":\"Test\",\"body\":\"Hello\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "jlwG2jyB8gIXOQjpUwNR/Uf5PKNy+OcbvYFs9cyghYA="
+      }
+    },
+    {
+      "id": "from-002-multi-mailbox-from",
+      "description": "A single From header containing multiple mailboxes — the FIRST mailbox wins, bare and lowercased. An implementation that passes the whole field value through a bare-address extractor instead will not reach this canonical object, and must fail closed rather than guess.",
+      "input": {
+        "raw_headers": [
+          [
+            "From",
+            "a@x.com, b@y.com"
+          ],
+          [
+            "To",
+            "user@example.com"
+          ]
+        ],
+        "from": "a@x.com, b@y.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Test",
+        "body": "Hello",
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "canonical_from": "a@x.com",
+        "canonical_to": "user@example.com",
+        "canonical_json": "{\"from\":\"a@x.com\",\"to\":\"user@example.com\",\"subject\":\"Test\",\"body\":\"Hello\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "qTKuy1XsLpInW2rfJuvnHxap1lI+4ttIY6hmuiVCJg4="
+      }
+    },
+    {
+      "id": "parts-001-two-plain",
+      "description": "v1.3 #3: TWO text/plain leaves -> two k:plain entries in document order; the second text part is bound (v1.2 covered only the first)",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Parts test",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/mixed",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "text": "First part."
+            },
+            {
+              "content_type": "text/plain",
+              "text": "Second part."
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Parts test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"y3phi26+SX3uKAV0+ZmQ7SDJ5myXDM92NDscJ3FrHME=\"},{\"k\":\"plain\",\"h\":\"DrWV6GV3dHXVEN8rYBAivZYqqOJcObfrIVhQrVnHBv8=\"}]}",
+        "content_hash": "X1LJWE5VFyLkEY13tGDcsv2HUXl5rkzhCL22fBtnm1E=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "y3phi26+SX3uKAV0+ZmQ7SDJ5myXDM92NDscJ3FrHME="
+          },
+          {
+            "k": "plain",
+            "h": "DrWV6GV3dHXVEN8rYBAivZYqqOJcObfrIVhQrVnHBv8="
+          }
+        ]
+      }
+    },
+    {
+      "id": "parts-002a-html-split",
+      "description": "v1.3 #2 injectivity (1/2): plain + html \"A\" + html \"B\" as separate leaves",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Parts test",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/alternative",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "text": "Hello"
+            },
+            {
+              "content_type": "text/html",
+              "text": "A"
+            },
+            {
+              "content_type": "text/html",
+              "text": "B"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Parts test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"GF+NsyJx/iX1Yab8k4suJkMG7DBO2lGAB9F2SCY4GWk=\"},{\"k\":\"html\",\"h\":\"VZrq0IJk1XldOQlxjN0Fq9SVcuhP5VWQ7vMaiKCP3/0=\"},{\"k\":\"html\",\"h\":\"335w5QIVRPSDS77mSp43if68S+gUcN9inK1t2wMyClw=\"}]}",
+        "content_hash": "MjmLT2ldjyhL+KzCAV5RmRXw7d4HZVznZODdN4fAzT8=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "GF+NsyJx/iX1Yab8k4suJkMG7DBO2lGAB9F2SCY4GWk="
+          },
+          {
+            "k": "html",
+            "h": "VZrq0IJk1XldOQlxjN0Fq9SVcuhP5VWQ7vMaiKCP3/0="
+          },
+          {
+            "k": "html",
+            "h": "335w5QIVRPSDS77mSp43if68S+gUcN9inK1t2wMyClw="
+          }
+        ]
+      }
+    },
+    {
+      "id": "parts-002b-html-joined",
+      "description": "v1.3 #2 injectivity (2/2): plain + ONE html \"A\\nB\" leaf — MUST hash differently from parts-002a (under v1.2 the \"\\n\"-join made them collide)",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Parts test",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/alternative",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "text": "Hello"
+            },
+            {
+              "content_type": "text/html",
+              "text": "A\nB"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Parts test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"GF+NsyJx/iX1Yab8k4suJkMG7DBO2lGAB9F2SCY4GWk=\"},{\"k\":\"html\",\"h\":\"I1GaQ8ZrTDQvJbMuCXl+xfP8C+OIzYJD+zRJr73OQBM=\"}]}",
+        "content_hash": "fE11Usd20/UnYmtUx4aPSsCZ80I97n/azyOPM6Q7w/g=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "GF+NsyJx/iX1Yab8k4suJkMG7DBO2lGAB9F2SCY4GWk="
+          },
+          {
+            "k": "html",
+            "h": "I1GaQ8ZrTDQvJbMuCXl+xfP8C+OIzYJD+zRJr73OQBM="
+          }
+        ],
+        "must_differ_from": "parts-002a-html-split"
+      }
+    },
+    {
+      "id": "parts-003-rfc822-opaque",
+      "description": "v1.3 #4 (G2): message/rfc822 is an opaque LEAF — no descent; h = SHA-256 of the entire attached .eml bytes; n = rfc822[0]",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Parts test",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/mixed",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "text": "See attached mail."
+            },
+            {
+              "content_type": "message/rfc822",
+              "raw": "From: alice@inner.example\r\nTo: bob@inner.example\r\nSubject: The original mail\r\nDate: Wed, 01 Jan 2026 00:00:00 +0000\r\n\r\nForwarded body line.\r\n"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Parts test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"n2N6CAR/ylgR7Rp1Gc7NxbPq6NJeqZ7nOuvDkOYllsw=\"},{\"k\":\"rfc822\",\"n\":\"rfc822[0]\",\"h\":\"zvEk+WoEpT595qzGJlNDeXJ1yosJmh+8VnrBWRUY98I=\"}]}",
+        "content_hash": "4zsVMN5hkiTSUCzp6ndEynEdXB75OUwxZx/oi1CFXrA=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "n2N6CAR/ylgR7Rp1Gc7NxbPq6NJeqZ7nOuvDkOYllsw="
+          },
+          {
+            "k": "rfc822",
+            "n": "rfc822[0]",
+            "h": "zvEk+WoEpT595qzGJlNDeXJ1yosJmh+8VnrBWRUY98I="
+          }
+        ]
+      }
+    },
+    {
+      "id": "parts-004-mixed-order",
+      "description": "v1.3 all kinds in document order: plain, html, attachment (filename lowercased), inline (cid fallback name), rfc822",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Parts test",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/mixed",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "text": "Everything."
+            },
+            {
+              "content_type": "text/html",
+              "text": "<p>Everything.</p>"
+            },
+            {
+              "content_type": "application/pdf",
+              "disposition": "attachment",
+              "filename": "Invoice.PDF",
+              "content_base64": "JVBERi0xLjQgZmFrZSBpbnZvaWNlIGJ5dGVzIGZvciB2ZWN0b3I="
+            },
+            {
+              "content_type": "image/png",
+              "disposition": "inline",
+              "content_id": "<Logo@X>",
+              "content_base64": "iVBORyBmYWtlIGxvZ28gYnl0ZXMgZm9yIHZlY3Rvcg=="
+            },
+            {
+              "content_type": "message/rfc822",
+              "raw": "From: alice@inner.example\r\nTo: bob@inner.example\r\nSubject: The original mail\r\nDate: Wed, 01 Jan 2026 00:00:00 +0000\r\n\r\nForwarded body line.\r\n"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Parts test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"SR5wgSNiZdU6I70s1j10O2CXBgABZ34OS4RyWCEyBkw=\"},{\"k\":\"html\",\"h\":\"OwP7JFRQqtYCTt8/DhDpZ/+DY/wzYeUVL1oX4vswMXY=\"},{\"k\":\"attachment\",\"n\":\"invoice.pdf\",\"h\":\"bzUeMcLY54bLQKizkZep00nTO3E2EmPmBer51AGaexM=\"},{\"k\":\"inline\",\"n\":\"cid:logo@x\",\"h\":\"M9flzPlaFbCZaEe5LhG5sTYRe0XsTIv/rlt5ZpjNIzI=\"},{\"k\":\"rfc822\",\"n\":\"rfc822[0]\",\"h\":\"zvEk+WoEpT595qzGJlNDeXJ1yosJmh+8VnrBWRUY98I=\"}]}",
+        "content_hash": "wLwsLgbwsCkV2CAC0EhR3ZqNt4RW0ZUtVSCcxo0/pC0=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "SR5wgSNiZdU6I70s1j10O2CXBgABZ34OS4RyWCEyBkw="
+          },
+          {
+            "k": "html",
+            "h": "OwP7JFRQqtYCTt8/DhDpZ/+DY/wzYeUVL1oX4vswMXY="
+          },
+          {
+            "k": "attachment",
+            "n": "invoice.pdf",
+            "h": "bzUeMcLY54bLQKizkZep00nTO3E2EmPmBer51AGaexM="
+          },
+          {
+            "k": "inline",
+            "n": "cid:logo@x",
+            "h": "M9flzPlaFbCZaEe5LhG5sTYRe0XsTIv/rlt5ZpjNIzI="
+          },
+          {
+            "k": "rfc822",
+            "n": "rfc822[0]",
+            "h": "zvEk+WoEpT595qzGJlNDeXJ1yosJmh+8VnrBWRUY98I="
+          }
+        ]
+      }
+    },
+    {
+      "id": "parts-005-order-swap",
+      "description": "v1.3 G1: same five leaves as parts-004 with attachment and inline SWAPPED — document order is bound, so the hash MUST differ (a sort rule would collide them)",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Parts test",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/mixed",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "text": "Everything."
+            },
+            {
+              "content_type": "text/html",
+              "text": "<p>Everything.</p>"
+            },
+            {
+              "content_type": "image/png",
+              "disposition": "inline",
+              "content_id": "<Logo@X>",
+              "content_base64": "iVBORyBmYWtlIGxvZ28gYnl0ZXMgZm9yIHZlY3Rvcg=="
+            },
+            {
+              "content_type": "application/pdf",
+              "disposition": "attachment",
+              "filename": "Invoice.PDF",
+              "content_base64": "JVBERi0xLjQgZmFrZSBpbnZvaWNlIGJ5dGVzIGZvciB2ZWN0b3I="
+            },
+            {
+              "content_type": "message/rfc822",
+              "raw": "From: alice@inner.example\r\nTo: bob@inner.example\r\nSubject: The original mail\r\nDate: Wed, 01 Jan 2026 00:00:00 +0000\r\n\r\nForwarded body line.\r\n"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Parts test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"SR5wgSNiZdU6I70s1j10O2CXBgABZ34OS4RyWCEyBkw=\"},{\"k\":\"html\",\"h\":\"OwP7JFRQqtYCTt8/DhDpZ/+DY/wzYeUVL1oX4vswMXY=\"},{\"k\":\"inline\",\"n\":\"cid:logo@x\",\"h\":\"M9flzPlaFbCZaEe5LhG5sTYRe0XsTIv/rlt5ZpjNIzI=\"},{\"k\":\"attachment\",\"n\":\"invoice.pdf\",\"h\":\"bzUeMcLY54bLQKizkZep00nTO3E2EmPmBer51AGaexM=\"},{\"k\":\"rfc822\",\"n\":\"rfc822[0]\",\"h\":\"zvEk+WoEpT595qzGJlNDeXJ1yosJmh+8VnrBWRUY98I=\"}]}",
+        "content_hash": "wgEN73de8d1sTr6/k5tZ6bDJ8ETs2jngf7JzfRhod4Y=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "SR5wgSNiZdU6I70s1j10O2CXBgABZ34OS4RyWCEyBkw="
+          },
+          {
+            "k": "html",
+            "h": "OwP7JFRQqtYCTt8/DhDpZ/+DY/wzYeUVL1oX4vswMXY="
+          },
+          {
+            "k": "inline",
+            "n": "cid:logo@x",
+            "h": "M9flzPlaFbCZaEe5LhG5sTYRe0XsTIv/rlt5ZpjNIzI="
+          },
+          {
+            "k": "attachment",
+            "n": "invoice.pdf",
+            "h": "bzUeMcLY54bLQKizkZep00nTO3E2EmPmBer51AGaexM="
+          },
+          {
+            "k": "rfc822",
+            "n": "rfc822[0]",
+            "h": "zvEk+WoEpT595qzGJlNDeXJ1yosJmh+8VnrBWRUY98I="
+          }
+        ],
+        "must_differ_from": "parts-004-mixed-order"
+      }
+    },
+    {
+      "id": "parts-006-unnamed-attachment",
+      "description": "v1.3 §9.4: attachment with NO filename -> n is OMITTED (no synthetic \"unnamed\"); position in parts binds its place",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Parts test",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/mixed",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "text": "Payload attached."
+            },
+            {
+              "content_type": "application/octet-stream",
+              "disposition": "attachment",
+              "content_base64": "b3BhcXVlIHVubmFtZWQgcGF5bG9hZA=="
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Parts test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"4e4lrhJ8EA0dggqhTk7dDVJRz59JQ4hBifhTWd6PRdM=\"},{\"k\":\"attachment\",\"h\":\"Akd0XohGzzTjOvE3VGl2qUP0HXGItFInXbJW1a2UHbE=\"}]}",
+        "content_hash": "dXZZOHfRG+d3nOrgG2PxZl7QInrCdCVnm5oVXvGuQTg=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "4e4lrhJ8EA0dggqhTk7dDVJRz59JQ4hBifhTWd6PRdM="
+          },
+          {
+            "k": "attachment",
+            "h": "Akd0XohGzzTjOvE3VGl2qUP0HXGItFInXbJW1a2UHbE="
+          }
+        ]
+      }
+    },
+    {
+      "id": "parts-007-text-as-attachment",
+      "description": "v1.3 §9.3 rule order: text/plain WITH filename and attachment disposition classifies as k:attachment (rule 2 wins over rule 3)",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Parts test",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/mixed",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "text": "Body text."
+            },
+            {
+              "content_type": "text/plain",
+              "disposition": "attachment",
+              "filename": "Notes.TXT",
+              "text": "attached notes content"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Parts test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"Qxm7sKKOZ2HN8bYYy9VNNo1OrzWpjD84AvSCDf8USKU=\"},{\"k\":\"attachment\",\"n\":\"notes.txt\",\"h\":\"MBUCNQRN1BrB7hkPCGZl/RRkG2J+hgXRnaZOmfSmxoU=\"}]}",
+        "content_hash": "gdVQKY6vC+RlsezVyU3RGxc+mpNnhIg1idFdgdYcIAE=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "Qxm7sKKOZ2HN8bYYy9VNNo1OrzWpjD84AvSCDf8USKU="
+          },
+          {
+            "k": "attachment",
+            "n": "notes.txt",
+            "h": "MBUCNQRN1BrB7hkPCGZl/RRkG2J+hgXRnaZOmfSmxoU="
+          }
+        ]
+      }
+    },
+    {
+      "id": "parts-008-filename-and-cid",
+      "description": "v1.3 §9.3: filename AND Content-ID with no disposition -> classified ONCE as attachment (first match; v1.2 double-binding retired)",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Parts test",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/mixed",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "text": "Image referenced."
+            },
+            {
+              "content_type": "image/png",
+              "filename": "Logo.PNG",
+              "content_id": "<logo@x>",
+              "content_base64": "iVBORyBmYWtlIGxvZ28gYnl0ZXMgZm9yIHZlY3Rvcg=="
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Parts test\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"b4fPGNl5GxZbV+psVEYjUOY5qZ+H/fyEU2YtDwvbG0w=\"},{\"k\":\"attachment\",\"n\":\"logo.png\",\"h\":\"M9flzPlaFbCZaEe5LhG5sTYRe0XsTIv/rlt5ZpjNIzI=\"}]}",
+        "content_hash": "zOMlu2FAQFZfc60U/wfoNMHNZfswU3Bgsn15Ygd0jGw=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "b4fPGNl5GxZbV+psVEYjUOY5qZ+H/fyEU2YtDwvbG0w="
+          },
+          {
+            "k": "attachment",
+            "n": "logo.png",
+            "h": "M9flzPlaFbCZaEe5LhG5sTYRe0XsTIv/rlt5ZpjNIzI="
+          }
+        ]
+      }
+    },
+    {
+      "id": "shape-a-001-plain-anchor",
+      "description": "v1.3 §1.1 backward-compat anchor: a single non-multipart text/plain message selects Shape A and hashes BYTE-IDENTICALLY to v1.1 (same values as retired attach-003)",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Attachment test",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "text": "See attached."
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Attachment test\",\"body\":\"See attached.\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "9YVzbPYjOu3oYm4P6j9ClN7b4fRmdkgGPL+/ibJmBGM="
+      }
+    },
+    {
+      "id": "shape-a-002-iso-8859-2-8bit",
+      "description": "§2 declared charset: a single text/plain part in iso-8859-2, 8bit on the wire, is read through its charset — the canonical body is the same Unicode text a UTF-8 part would give",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Charset iso-8859-2 8bit",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "iso-8859-2",
+          "transfer_encoding": "8bit",
+          "payload_base64": "yOFzdGthIGsg+mhyYWTsOiA0IDIwMCBFVVINCtroZXQgMjkwMDEyMzQ1Ni8yMDEwLCBzcGxhdG5vc3QgdiBw4XRlay4NCq5sdbtvdehr/SBr+fIg+nDsbCDv4WJlbHNr6SDzZHkuIFRlbnRvIPjhZGVrIGplIGRlbLntIG5lviBzZWRtZGVz4XQguWVzdCB6bmFr+SwgYWJ5IGhvIHF1b3RlZC1wcmludGFibGUgbXVzZWwgemFsb21pdC4NCg==",
+          "text": "Částka k úhradě: 4 200 EUR\nÚčet 2900123456/2010, splatnost v pátek.\nŽluťoučký kůň úpěl ďábelské ódy. Tento řádek je delší než sedmdesát šest znaků, aby ho quoted-printable musel zalomit.\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Charset iso-8859-2 8bit\",\"body\":\"Částka k úhradě: 4 200 EUR\\nÚčet 2900123456/2010, splatnost v pátek.\\nŽluťoučký kůň úpěl ďábelské ódy. Tento řádek je delší než sedmdesát šest znaků, aby ho quoted-printable musel zalomit.\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "dgwa7sGT1/2QbpMc8XKqmCEecXUYbeJPyyY7fiHKiK4="
+      }
+    },
+    {
+      "id": "shape-a-003-iso-8859-2-qp",
+      "description": "§2 declared charset: a single text/plain part in iso-8859-2, quoted-printable on the wire, is read through its charset — the canonical body is the same Unicode text a UTF-8 part would give",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Charset iso-8859-2 quoted-printable",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "iso-8859-2",
+          "transfer_encoding": "quoted-printable",
+          "payload_base64": "PUM4PUUxc3RrYSBrID1GQWhyYWQ9RUM6IDQgMjAwIEVVUg0KPURBPUU4ZXQgMjkwMDEyMzQ1Ni8yMDEwLCBzcGxhdG5vc3QgdiBwPUUxdGVrLg0KPUFFbHU9QkJvdT1FOGs9RkQgaz1GOT1GMiA9RkFwPUVDbCA9RUY9RTFiZWxzaz1FOSA9RjNkeS4gVGVudG8gPUY4PUUxZGVrIGplPQ0KIGRlbD1COT1FRCBuZT1CRSBzZWRtZGVzPUUxdCA9Qjllc3Qgem5haz1GOSwgYWJ5IGhvIHF1b3RlZC1wcmludGFibGUgbXVzZWwgPQ0KemFsb21pdC4NCg==",
+          "text": "Částka k úhradě: 4 200 EUR\nÚčet 2900123456/2010, splatnost v pátek.\nŽluťoučký kůň úpěl ďábelské ódy. Tento řádek je delší než sedmdesát šest znaků, aby ho quoted-printable musel zalomit.\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Charset iso-8859-2 quoted-printable\",\"body\":\"Částka k úhradě: 4 200 EUR\\nÚčet 2900123456/2010, splatnost v pátek.\\nŽluťoučký kůň úpěl ďábelské ódy. Tento řádek je delší než sedmdesát šest znaků, aby ho quoted-printable musel zalomit.\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "JONbkArgp9FyvrErmwcbjSApO+a5ZsKn/P2loiUYh88="
+      }
+    },
+    {
+      "id": "shape-a-004-windows-1250-8bit",
+      "description": "§2 declared charset: a single text/plain part in windows-1250, 8bit on the wire, is read through its charset — the canonical body is the same Unicode text a UTF-8 part would give",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Charset windows-1250 8bit",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "windows-1250",
+          "transfer_encoding": "8bit",
+          "payload_base64": "Q2VuYTogNCAyMDAggCCWIHNwbGF0bm9zdCCEdiBw4XRla5MuDQqKnWFzdG79IJ5sdZ1vdehr/SBr+fIsIM/hYmVsc2vpIPNkeS4NClrhbG9oYSAxIDAwMCBL6CBqZSBqaZ4gdWhyYXplbmEuIFRlbnRvIPjhZGVrIGplIGRlbJrtIG5lniBzZWRtZGVz4XQgmmVzdCB6bmFr+SwgYWJ5IGhvIHF1b3RlZC1wcmludGFibGUgbXVzZWwgemFsb21pdC4NCg==",
+          "text": "Cena: 4 200 € – splatnost „v pátek“.\nŠťastný žluťoučký kůň, Ďábelské ódy.\nZáloha 1 000 Kč je již uhrazena. Tento řádek je delší než sedmdesát šest znaků, aby ho quoted-printable musel zalomit.\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Charset windows-1250 8bit\",\"body\":\"Cena: 4 200 € – splatnost „v pátek“.\\nŠťastný žluťoučký kůň, Ďábelské ódy.\\nZáloha 1 000 Kč je již uhrazena. Tento řádek je delší než sedmdesát šest znaků, aby ho quoted-printable musel zalomit.\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "WdzxaSCNQjucylRMAV3+kvASb9+RJI1JMrrDm+fm9ig="
+      }
+    },
+    {
+      "id": "shape-a-005-windows-1250-qp",
+      "description": "§2 declared charset: a single text/plain part in windows-1250, quoted-printable on the wire, is read through its charset — the canonical body is the same Unicode text a UTF-8 part would give",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Charset windows-1250 quoted-printable",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "windows-1250",
+          "transfer_encoding": "quoted-printable",
+          "payload_base64": "Q2VuYTogNCAyMDAgPTgwID05NiBzcGxhdG5vc3QgPTg0diBwPUUxdGVrPTkzLg0KPThBPTlEYXN0bj1GRCA9OUVsdT05RG91PUU4az1GRCBrPUY5PUYyLCA9Q0Y9RTFiZWxzaz1FOSA9RjNkeS4NClo9RTFsb2hhIDEgMDAwIEs9RTggamUgamk9OUUgdWhyYXplbmEuIFRlbnRvID1GOD1FMWRlayBqZSBkZWw9OUE9RUQgbmU9OUUgcz0NCmVkbWRlcz1FMXQgPTlBZXN0IHpuYWs9RjksIGFieSBobyBxdW90ZWQtcHJpbnRhYmxlIG11c2VsIHphbG9taXQuDQo=",
+          "text": "Cena: 4 200 € – splatnost „v pátek“.\nŠťastný žluťoučký kůň, Ďábelské ódy.\nZáloha 1 000 Kč je již uhrazena. Tento řádek je delší než sedmdesát šest znaků, aby ho quoted-printable musel zalomit.\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Charset windows-1250 quoted-printable\",\"body\":\"Cena: 4 200 € – splatnost „v pátek“.\\nŠťastný žluťoučký kůň, Ďábelské ódy.\\nZáloha 1 000 Kč je již uhrazena. Tento řádek je delší než sedmdesát šest znaků, aby ho quoted-printable musel zalomit.\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "l1KNLP3PSwe6xutWXsAfVWTL98sWNH8R6nHILct4aQ8="
+      }
+    },
+    {
+      "id": "shape-a-006-iso-8859-1-8bit",
+      "description": "§2 declared charset: a single text/plain part in iso-8859-1, 8bit on the wire, is read through its charset — the canonical body is the same Unicode text a UTF-8 part would give",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Charset iso-8859-1 8bit",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "iso-8859-1",
+          "transfer_encoding": "8bit",
+          "payload_base64": "UmVjaG51bmcgTnIuIDE3OiA0IDIwMCBFVVINCtxiZXJ3ZWlzdW5nIGJpcyBGcmVpdGFnLiBHcvzfZSBhdXMgTfxuY2hlbiwgvSBBbnphaGx1bmcgqSBN/GxsZXIgJiBT9mhuZS4NCsdhIGNv+3RlIHRy6HMgY2hlciwgc2Xxb3IuIERpZXNlIFplaWxlIGlzdCBs5G5nZXIgYWxzIHNlY2hzdW5kc2llYnppZyBaZWljaGVuLCBkYW1pdCBxdW90ZWQtcHJpbnRhYmxlIHNpZSB1bWJyaWNodC4NCg==",
+          "text": "Rechnung Nr. 17: 4 200 EUR\nÜberweisung bis Freitag. Grüße aus München, ½ Anzahlung © Müller & Söhne.\nÇa coûte très cher, señor. Diese Zeile ist länger als sechsundsiebzig Zeichen, damit quoted-printable sie umbricht.\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Charset iso-8859-1 8bit\",\"body\":\"Rechnung Nr. 17: 4 200 EUR\\nÜberweisung bis Freitag. Grüße aus München, ½ Anzahlung © Müller & Söhne.\\nÇa coûte très cher, señor. Diese Zeile ist länger als sechsundsiebzig Zeichen, damit quoted-printable sie umbricht.\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "bXD1R3ZR0yGSCnfgQU60KxfGbgbvPpIFUBkswQOLrqY="
+      }
+    },
+    {
+      "id": "shape-a-007-iso-8859-1-qp",
+      "description": "§2 declared charset: a single text/plain part in iso-8859-1, quoted-printable on the wire, is read through its charset — the canonical body is the same Unicode text a UTF-8 part would give",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Charset iso-8859-1 quoted-printable",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "iso-8859-1",
+          "transfer_encoding": "quoted-printable",
+          "payload_base64": "UmVjaG51bmcgTnIuIDE3OiA0IDIwMCBFVVINCj1EQ2JlcndlaXN1bmcgYmlzIEZyZWl0YWcuIEdyPUZDPURGZSBhdXMgTT1GQ25jaGVuLCA9QkQgQW56YWhsdW5nID1BOSBNPUZDbD0NCmxlciAmIFM9RjZobmUuDQo9QzdhIGNvPUZCdGUgdHI9RThzIGNoZXIsIHNlPUYxb3IuIERpZXNlIFplaWxlIGlzdCBsPUU0bmdlciBhbHMgc2VjaHN1bmRzaWU9DQpiemlnIFplaWNoZW4sIGRhbWl0IHF1b3RlZC1wcmludGFibGUgc2llIHVtYnJpY2h0Lg0K",
+          "text": "Rechnung Nr. 17: 4 200 EUR\nÜberweisung bis Freitag. Grüße aus München, ½ Anzahlung © Müller & Söhne.\nÇa coûte très cher, señor. Diese Zeile ist länger als sechsundsiebzig Zeichen, damit quoted-printable sie umbricht.\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Charset iso-8859-1 quoted-printable\",\"body\":\"Rechnung Nr. 17: 4 200 EUR\\nÜberweisung bis Freitag. Grüße aus München, ½ Anzahlung © Müller & Söhne.\\nÇa coûte très cher, señor. Diese Zeile ist länger als sechsundsiebzig Zeichen, damit quoted-printable sie umbricht.\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "3c6/hN06Y9UaLE+CsE38vsUNJoHxP0u5kJAgOF9d7Z8="
+      }
+    },
+    {
+      "id": "parts-009-windows-1250-qp-plain-alternative",
+      "description": "§9.3 plain leaf in a declared charset: a windows-1250 quoted-printable text/plain alternative hashes the text read through its charset, next to a UTF-8 text/html alternative",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Parts charset",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/alternative",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "charset": "windows-1250",
+              "transfer_encoding": "quoted-printable",
+              "payload_base64": "Q2VuYTogNCAyMDAgPTgwID05NiBzcGxhdG5vc3QgPTg0diBwPUUxdGVrPTkzLg0KPThBPTlEYXN0bj1GRCA9OUVsdT05RG91PUU4az1GRCBrPUY5PUYyLCA9Q0Y9RTFiZWxzaz1FOSA9RjNkeS4NClo9RTFsb2hhIDEgMDAwIEs9RTggamUgamk9OUUgdWhyYXplbmEuIFRlbnRvID1GOD1FMWRlayBqZSBkZWw9OUE9RUQgbmU9OUUgcz0NCmVkbWRlcz1FMXQgPTlBZXN0IHpuYWs9RjksIGFieSBobyBxdW90ZWQtcHJpbnRhYmxlIG11c2VsIHphbG9taXQuDQo=",
+              "text": "Cena: 4 200 € – splatnost „v pátek“.\nŠťastný žluťoučký kůň, Ďábelské ódy.\nZáloha 1 000 Kč je již uhrazena. Tento řádek je delší než sedmdesát šest znaků, aby ho quoted-printable musel zalomit.\n"
+            },
+            {
+              "content_type": "text/html",
+              "text": "<p>Cena: 4 200 € – splatnost „v pátek“.</p>"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Parts charset\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"lBW/HJz6UIc9lSWPh6wfOfRUa3/J0Yr4M9qzX+5AUJI=\"},{\"k\":\"html\",\"h\":\"DLWjTHXhOEz0EvM/9HvFvxGj/qcXa1t0f176jO7+/JU=\"}]}",
+        "content_hash": "gXNgAdhl67h+hh8+50x6EZeGjFHOVBYtylJTlurX9EM=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "lBW/HJz6UIc9lSWPh6wfOfRUa3/J0Yr4M9qzX+5AUJI="
+          },
+          {
+            "k": "html",
+            "h": "DLWjTHXhOEz0EvM/9HvFvxGj/qcXa1t0f176jO7+/JU="
+          }
+        ]
+      }
+    },
+    {
+      "id": "shape-a-008-iso-8859-1-every-high-byte-8bit",
+      "description": "§2 declared charset: every byte 0x80-0xFF in a text/plain part labelled iso-8859-1 (8bit); the label names the WHATWG encoding windows-1252 and each byte reads as that encoding's index gives it — the text Thunderbird and browsers show",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Every high byte iso-8859-1 8bit",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "iso-8859-1",
+          "transfer_encoding": "8bit",
+          "payload_base64": "SW52b2ljZSA0IDIwMCBFVVIsIGV2ZXJ5IGJ5dGUgYWJvdmUgQVNDSUk6DQo4MDoggIGCg4SFhoeIiYqLjI2OjyB8DQo5MDogkJGSk5SVlpeYmZqbnJ2enyB8DQpBMDogoKGio6SlpqeoqaqrrK2uryB8DQpCMDogsLGys7S1tre4ubq7vL2+vyB8DQpDMDogwMHCw8TFxsfIycrLzM3OzyB8DQpEMDog0NHS09TV1tfY2drb3N3e3yB8DQpFMDog4OHi4+Tl5ufo6err7O3u7yB8DQpGMDog8PHy8/T19vf4+fr7/P3+/yB8DQo=",
+          "text": "Invoice 4 200 EUR, every byte above ASCII:\r\n80: €‚ƒ„…†‡ˆ‰Š‹ŒŽ |\r\n90: ‘’“”•–—˜™š›œžŸ |\r\nA0:  ¡¢£¤¥¦§¨©ª«¬­®¯ |\r\nB0: °±²³´µ¶·¸¹º»¼½¾¿ |\r\nC0: ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ |\r\nD0: ÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß |\r\nE0: àáâãäåæçèéêëìíîï |\r\nF0: ðñòóôõö÷øùúûüýþÿ |\r\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Every high byte iso-8859-1 8bit\",\"body\":\"Invoice 4 200 EUR, every byte above ASCII:\\n80: €‚ƒ„…†‡ˆ‰Š‹ŒŽ |\\n90: ‘’“”•–—˜™š›œžŸ |\\nA0:  ¡¢£¤¥¦§¨©ª«¬­®¯ |\\nB0: °±²³´µ¶·¸¹º»¼½¾¿ |\\nC0: ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ |\\nD0: ÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß |\\nE0: àáâãäåæçèéêëìíîï |\\nF0: ðñòóôõö÷øùúûüýþÿ |\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "aQCgDraymk8E1AyAdSPmgfk39dCYcpHDZv/srg7Ti94="
+      }
+    },
+    {
+      "id": "shape-a-009-latin1-every-high-byte-qp",
+      "description": "§2 declared charset: every byte 0x80-0xFF in a text/plain part labelled latin1 (quoted-printable); the label names the WHATWG encoding windows-1252 and each byte reads as that encoding's index gives it — the text Thunderbird and browsers show",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Every high byte latin1 quoted-printable",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "latin1",
+          "transfer_encoding": "quoted-printable",
+          "payload_base64": "SW52b2ljZSA0IDIwMCBFVVIsIGV2ZXJ5IGJ5dGUgYWJvdmUgQVNDSUk6DQo4MDogPTgwPTgxPTgyPTgzPTg0PTg1PTg2PTg3PTg4PTg5PThBPThCPThDPThEPThFPThGIHwNCjkwOiA9OTA9OTE9OTI9OTM9OTQ9OTU9OTY9OTc9OTg9OTk9OUE9OUI9OUM9OUQ9OUU9OUYgfA0KQTA6ID1BMD1BMT1BMj1BMz1BND1BNT1BNj1BNz1BOD1BOT1BQT1BQj1BQz1BRD1BRT1BRiB8DQpCMDogPUIwPUIxPUIyPUIzPUI0PUI1PUI2PUI3PUI4PUI5PUJBPUJCPUJDPUJEPUJFPUJGIHwNCkMwOiA9QzA9QzE9QzI9QzM9QzQ9QzU9QzY9Qzc9Qzg9Qzk9Q0E9Q0I9Q0M9Q0Q9Q0U9Q0YgfA0KRDA6ID1EMD1EMT1EMj1EMz1END1ENT1ENj1ENz1EOD1EOT1EQT1EQj1EQz1ERD1ERT1ERiB8DQpFMDogPUUwPUUxPUUyPUUzPUU0PUU1PUU2PUU3PUU4PUU5PUVBPUVCPUVDPUVEPUVFPUVGIHwNCkYwOiA9RjA9RjE9RjI9RjM9RjQ9RjU9RjY9Rjc9Rjg9Rjk9RkE9RkI9RkM9RkQ9RkU9RkYgfA0K",
+          "text": "Invoice 4 200 EUR, every byte above ASCII:\r\n80: €‚ƒ„…†‡ˆ‰Š‹ŒŽ |\r\n90: ‘’“”•–—˜™š›œžŸ |\r\nA0:  ¡¢£¤¥¦§¨©ª«¬­®¯ |\r\nB0: °±²³´µ¶·¸¹º»¼½¾¿ |\r\nC0: ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ |\r\nD0: ÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß |\r\nE0: àáâãäåæçèéêëìíîï |\r\nF0: ðñòóôõö÷øùúûüýþÿ |\r\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Every high byte latin1 quoted-printable\",\"body\":\"Invoice 4 200 EUR, every byte above ASCII:\\n80: €‚ƒ„…†‡ˆ‰Š‹ŒŽ |\\n90: ‘’“”•–—˜™š›œžŸ |\\nA0:  ¡¢£¤¥¦§¨©ª«¬­®¯ |\\nB0: °±²³´µ¶·¸¹º»¼½¾¿ |\\nC0: ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ |\\nD0: ÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß |\\nE0: àáâãäåæçèéêëìíîï |\\nF0: ðñòóôõö÷øùúûüýþÿ |\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "rFeJ6BVP/OQcz6FArILb+GydAxfksA4w1CYcJsKBNpk="
+      }
+    },
+    {
+      "id": "shape-a-010-us-ascii-every-high-byte-8bit",
+      "description": "§2 declared charset: every byte 0x80-0xFF in a text/plain part labelled us-ascii (8bit); the label names the WHATWG encoding windows-1252 and each byte reads as that encoding's index gives it — the text Thunderbird and browsers show",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Every high byte us-ascii 8bit",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "us-ascii",
+          "transfer_encoding": "8bit",
+          "payload_base64": "SW52b2ljZSA0IDIwMCBFVVIsIGV2ZXJ5IGJ5dGUgYWJvdmUgQVNDSUk6DQo4MDoggIGCg4SFhoeIiYqLjI2OjyB8DQo5MDogkJGSk5SVlpeYmZqbnJ2enyB8DQpBMDogoKGio6SlpqeoqaqrrK2uryB8DQpCMDogsLGys7S1tre4ubq7vL2+vyB8DQpDMDogwMHCw8TFxsfIycrLzM3OzyB8DQpEMDog0NHS09TV1tfY2drb3N3e3yB8DQpFMDog4OHi4+Tl5ufo6err7O3u7yB8DQpGMDog8PHy8/T19vf4+fr7/P3+/yB8DQo=",
+          "text": "Invoice 4 200 EUR, every byte above ASCII:\r\n80: €‚ƒ„…†‡ˆ‰Š‹ŒŽ |\r\n90: ‘’“”•–—˜™š›œžŸ |\r\nA0:  ¡¢£¤¥¦§¨©ª«¬­®¯ |\r\nB0: °±²³´µ¶·¸¹º»¼½¾¿ |\r\nC0: ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ |\r\nD0: ÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß |\r\nE0: àáâãäåæçèéêëìíîï |\r\nF0: ðñòóôõö÷øùúûüýþÿ |\r\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Every high byte us-ascii 8bit\",\"body\":\"Invoice 4 200 EUR, every byte above ASCII:\\n80: €‚ƒ„…†‡ˆ‰Š‹ŒŽ |\\n90: ‘’“”•–—˜™š›œžŸ |\\nA0:  ¡¢£¤¥¦§¨©ª«¬­®¯ |\\nB0: °±²³´µ¶·¸¹º»¼½¾¿ |\\nC0: ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ |\\nD0: ÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß |\\nE0: àáâãäåæçèéêëìíîï |\\nF0: ðñòóôõö÷øùúûüýþÿ |\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "GEZq0n2AhHZ1MY1SjjDAmuw9IlftlILNqc9BTqwrrFg="
+      }
+    },
+    {
+      "id": "shape-a-011-windows-1250-every-high-byte-8bit",
+      "description": "§2 declared charset: every byte 0x80-0xFF in a text/plain part labelled windows-1250 (8bit); the label names the WHATWG encoding windows-1250 and each byte reads as that encoding's index gives it — the text Thunderbird and browsers show",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Every high byte windows-1250 8bit",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "windows-1250",
+          "transfer_encoding": "8bit",
+          "payload_base64": "SW52b2ljZSA0IDIwMCBFVVIsIGV2ZXJ5IGJ5dGUgYWJvdmUgQVNDSUk6DQo4MDoggIGCg4SFhoeIiYqLjI2OjyB8DQo5MDogkJGSk5SVlpeYmZqbnJ2enyB8DQpBMDogoKGio6SlpqeoqaqrrK2uryB8DQpCMDogsLGys7S1tre4ubq7vL2+vyB8DQpDMDogwMHCw8TFxsfIycrLzM3OzyB8DQpEMDog0NHS09TV1tfY2drb3N3e3yB8DQpFMDog4OHi4+Tl5ufo6err7O3u7yB8DQpGMDog8PHy8/T19vf4+fr7/P3+/yB8DQo=",
+          "text": "Invoice 4 200 EUR, every byte above ASCII:\r\n80: €‚„…†‡‰Š‹ŚŤŽŹ |\r\n90: ‘’“”•–—™š›śťžź |\r\nA0:  ˇ˘Ł¤Ą¦§¨©Ş«¬­®Ż |\r\nB0: °±˛ł´µ¶·¸ąş»Ľ˝ľż |\r\nC0: ŔÁÂĂÄĹĆÇČÉĘËĚÍÎĎ |\r\nD0: ĐŃŇÓÔŐÖ×ŘŮÚŰÜÝŢß |\r\nE0: ŕáâăäĺćçčéęëěíîď |\r\nF0: đńňóôőö÷řůúűüýţ˙ |\r\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Every high byte windows-1250 8bit\",\"body\":\"Invoice 4 200 EUR, every byte above ASCII:\\n80: €‚„…†‡‰Š‹ŚŤŽŹ |\\n90: ‘’“”•–—™š›śťžź |\\nA0:  ˇ˘Ł¤Ą¦§¨©Ş«¬­®Ż |\\nB0: °±˛ł´µ¶·¸ąş»Ľ˝ľż |\\nC0: ŔÁÂĂÄĹĆÇČÉĘËĚÍÎĎ |\\nD0: ĐŃŇÓÔŐÖ×ŘŮÚŰÜÝŢß |\\nE0: ŕáâăäĺćçčéęëěíîď |\\nF0: đńňóôőö÷řůúűüýţ˙ |\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "KgVVqF0XvYVEculuiZjUFsrorUIB6hmxA9zUw09piQM="
+      }
+    },
+    {
+      "id": "shape-a-012-iso-8859-2-every-high-byte-qp",
+      "description": "§2 declared charset: every byte 0x80-0xFF in a text/plain part labelled iso-8859-2 (quoted-printable); the label names the WHATWG encoding iso-8859-2 and each byte reads as that encoding's index gives it — the text Thunderbird and browsers show",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Every high byte iso-8859-2 quoted-printable",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "iso-8859-2",
+          "transfer_encoding": "quoted-printable",
+          "payload_base64": "SW52b2ljZSA0IDIwMCBFVVIsIGV2ZXJ5IGJ5dGUgYWJvdmUgQVNDSUk6DQo4MDogPTgwPTgxPTgyPTgzPTg0PTg1PTg2PTg3PTg4PTg5PThBPThCPThDPThEPThFPThGIHwNCjkwOiA9OTA9OTE9OTI9OTM9OTQ9OTU9OTY9OTc9OTg9OTk9OUE9OUI9OUM9OUQ9OUU9OUYgfA0KQTA6ID1BMD1BMT1BMj1BMz1BND1BNT1BNj1BNz1BOD1BOT1BQT1BQj1BQz1BRD1BRT1BRiB8DQpCMDogPUIwPUIxPUIyPUIzPUI0PUI1PUI2PUI3PUI4PUI5PUJBPUJCPUJDPUJEPUJFPUJGIHwNCkMwOiA9QzA9QzE9QzI9QzM9QzQ9QzU9QzY9Qzc9Qzg9Qzk9Q0E9Q0I9Q0M9Q0Q9Q0U9Q0YgfA0KRDA6ID1EMD1EMT1EMj1EMz1END1ENT1ENj1ENz1EOD1EOT1EQT1EQj1EQz1ERD1ERT1ERiB8DQpFMDogPUUwPUUxPUUyPUUzPUU0PUU1PUU2PUU3PUU4PUU5PUVBPUVCPUVDPUVEPUVFPUVGIHwNCkYwOiA9RjA9RjE9RjI9RjM9RjQ9RjU9RjY9Rjc9Rjg9Rjk9RkE9RkI9RkM9RkQ9RkU9RkYgfA0K",
+          "text": "Invoice 4 200 EUR, every byte above ASCII:\r\n80:  |\r\n90:  |\r\nA0:  Ą˘Ł¤ĽŚ§¨ŠŞŤŹ­ŽŻ |\r\nB0: °ą˛ł´ľśˇ¸šşťź˝žż |\r\nC0: ŔÁÂĂÄĹĆÇČÉĘËĚÍÎĎ |\r\nD0: ĐŃŇÓÔŐÖ×ŘŮÚŰÜÝŢß |\r\nE0: ŕáâăäĺćçčéęëěíîď |\r\nF0: đńňóôőö÷řůúűüýţ˙ |\r\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Every high byte iso-8859-2 quoted-printable\",\"body\":\"Invoice 4 200 EUR, every byte above ASCII:\\n80:  |\\n90:  |\\nA0:  Ą˘Ł¤ĽŚ§¨ŠŞŤŹ­ŽŻ |\\nB0: °ą˛ł´ľśˇ¸šşťź˝žż |\\nC0: ŔÁÂĂÄĹĆÇČÉĘËĚÍÎĎ |\\nD0: ĐŃŇÓÔŐÖ×ŘŮÚŰÜÝŢß |\\nE0: ŕáâăäĺćçčéęëěíîď |\\nF0: đńňóôőö÷řůúűüýţ˙ |\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "/KJQX/G+YTL2zhwXJ4KXz4cmwytqqbmv2Pzj72AXCUs="
+      }
+    },
+    {
+      "id": "parts-010-every-high-byte-plain-and-html",
+      "description": "§9.3 text leaves in declared single-byte charsets: a windows-1250 quoted-printable text/plain alternative and an iso-8859-1 8bit text/html alternative, each carrying every byte 0x80-0xFF, hash the text read through the WHATWG encoding their label names",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Every high byte in both alternatives",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/alternative",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "charset": "windows-1250",
+              "transfer_encoding": "quoted-printable",
+              "payload_base64": "RmFrdHVyYSA0IDIwMCBFVVIsIGV2ZXJ5IHdpbmRvd3MtMTI1MCBieXRlOg0KODA6ID04MD04MT04Mj04Mz04ND04NT04Nj04Nz04OD04OT04QT04Qj04Qz04RD04RT04RiB8DQo5MDogPTkwPTkxPTkyPTkzPTk0PTk1PTk2PTk3PTk4PTk5PTlBPTlCPTlDPTlEPTlFPTlGIHwNCkEwOiA9QTA9QTE9QTI9QTM9QTQ9QTU9QTY9QTc9QTg9QTk9QUE9QUI9QUM9QUQ9QUU9QUYgfA0KQjA6ID1CMD1CMT1CMj1CMz1CND1CNT1CNj1CNz1COD1COT1CQT1CQj1CQz1CRD1CRT1CRiB8DQpDMDogPUMwPUMxPUMyPUMzPUM0PUM1PUM2PUM3PUM4PUM5PUNBPUNCPUNDPUNEPUNFPUNGIHwNCkQwOiA9RDA9RDE9RDI9RDM9RDQ9RDU9RDY9RDc9RDg9RDk9REE9REI9REM9REQ9REU9REYgfA0KRTA6ID1FMD1FMT1FMj1FMz1FND1FNT1FNj1FNz1FOD1FOT1FQT1FQj1FQz1FRD1FRT1FRiB8DQpGMDogPUYwPUYxPUYyPUYzPUY0PUY1PUY2PUY3PUY4PUY5PUZBPUZCPUZDPUZEPUZFPUZGIHwNCg==",
+              "text": "Faktura 4 200 EUR, every windows-1250 byte:\r\n80: €‚„…†‡‰Š‹ŚŤŽŹ |\r\n90: ‘’“”•–—™š›śťžź |\r\nA0:  ˇ˘Ł¤Ą¦§¨©Ş«¬­®Ż |\r\nB0: °±˛ł´µ¶·¸ąş»Ľ˝ľż |\r\nC0: ŔÁÂĂÄĹĆÇČÉĘËĚÍÎĎ |\r\nD0: ĐŃŇÓÔŐÖ×ŘŮÚŰÜÝŢß |\r\nE0: ŕáâăäĺćçčéęëěíîď |\r\nF0: đńňóôőö÷řůúűüýţ˙ |\r\n"
+            },
+            {
+              "content_type": "text/html",
+              "charset": "iso-8859-1",
+              "transfer_encoding": "8bit",
+              "payload_base64": "PHA+SW52b2ljZSA0IDIwMCBFVVI8L3A+DQo8cHJlPg0KZXZlcnkgaXNvLTg4NTktMSBieXRlOg0KODA6IICBgoOEhYaHiImKi4yNjo8gfA0KOTA6IJCRkpOUlZaXmJmam5ydnp8gfA0KQTA6IKChoqOkpaanqKmqq6ytrq8gfA0KQjA6ILCxsrO0tba3uLm6u7y9vr8gfA0KQzA6IMDBwsPExcbHyMnKy8zNzs8gfA0KRDA6INDR0tPU1dbX2Nna29zd3t8gfA0KRTA6IODh4uPk5ebn6Onq6+zt7u8gfA0KRjA6IPDx8vP09fb3+Pn6+/z9/v8gfA0KPC9wcmU+",
+              "text": "<p>Invoice 4 200 EUR</p>\r\n<pre>\r\nevery iso-8859-1 byte:\r\n80: €‚ƒ„…†‡ˆ‰Š‹ŒŽ |\r\n90: ‘’“”•–—˜™š›œžŸ |\r\nA0:  ¡¢£¤¥¦§¨©ª«¬­®¯ |\r\nB0: °±²³´µ¶·¸¹º»¼½¾¿ |\r\nC0: ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ |\r\nD0: ÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß |\r\nE0: àáâãäåæçèéêëìíîï |\r\nF0: ðñòóôõö÷øùúûüýþÿ |\r\n</pre>"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Every high byte in both alternatives\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"sca+rPL5u1SNVu8LRNQx4yx/ftAIj9kB5WPTo6r4MVg=\"},{\"k\":\"html\",\"h\":\"b9hmxih6Zhx9nYxmXEjgyvqGbWy+QxBvEsYs02US2Wo=\"}]}",
+        "content_hash": "SZg1Kw2lKhls1zrYWu3KIdRVsDQj6EhK93l5sAe4OpU=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "sca+rPL5u1SNVu8LRNQx4yx/ftAIj9kB5WPTo6r4MVg="
+          },
+          {
+            "k": "html",
+            "h": "b9hmxih6Zhx9nYxmXEjgyvqGbWy+QxBvEsYs02US2Wo="
+          }
+        ]
+      }
+    },
+    {
+      "id": "shape-a-013-utf-8-trim-edges-8bit",
+      "description": "§2 step 4: the text starts and ends with characters the trim set and Python's str.strip() treat differently (U+0085, U+001C-U+001F, U+FEFF not at position 0) next to ones both remove (U+00A0, U+2028, U+2029, U+3000) and one both keep (U+180E); the canonical text is trimmed by exactly the characters String.prototype.trim removes",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Trim edges utf-8 8bit",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "utf-8",
+          "transfer_encoding": "8bit",
+          "payload_base64": "44CA77u/4oCoHcKFIEludm9pY2UgNCAyMDAgRVVSDQpzcGxhdG5vc3QgdiBww6F0ZWsg4aCODQrhoI4fHsKF77u/4oCpwqANCg==",
+          "text": "　﻿ \u001d Invoice 4 200 EUR\r\nsplatnost v pátek ᠎\r\n᠎\u001f\u001e﻿  \r\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Trim edges utf-8 8bit\",\"body\":\"\\u001d Invoice 4 200 EUR\\nsplatnost v pátek ᠎\\n᠎\\u001f\\u001e\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "FcanBVfGLpaalNQyUUDpFAqzWqzteZJi5rnHeWeK37w="
+      }
+    },
+    {
+      "id": "shape-a-014-iso-8859-2-trim-edges-8bit",
+      "description": "§2 step 4: the text starts and ends with characters the trim set and Python's str.strip() treat differently (U+0085, U+001C-U+001F, U+FEFF not at position 0) next to ones both remove (U+00A0, U+2028, U+2029, U+3000) and one both keep (U+180E); the canonical text is trimmed by exactly the characters String.prototype.trim removes",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Trim edges iso-8859-2 8bit",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "text/plain",
+          "charset": "iso-8859-2",
+          "transfer_encoding": "8bit",
+          "payload_base64": "haBGYWt0dXJhIDQgMjAwIEVVUg0Kc3BsYXRub3N0IHYgcOF0ZWschQ0K",
+          "text": " Faktura 4 200 EUR\r\nsplatnost v pátek\u001c\r\n"
+        }
+      },
+      "expected": {
+        "shape": "A",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Trim edges iso-8859-2 8bit\",\"body\":\" Faktura 4 200 EUR\\nsplatnost v pátek\\u001c\",\"timestamp\":\"2026-01-01T00:00:00.000Z\"}",
+        "content_hash": "yCQV4465HRuLvcBh8kxsEljlkCHeOWb3aKGo6xxedaM="
+      }
+    },
+    {
+      "id": "parts-011-trim-edges-text-leaves",
+      "description": "§9.3 text leaves, §2 step 4: a UTF-8 quoted-printable text/plain leaf and an iso-8859-2 8bit text/html leaf whose text starts and ends with U+0085, U+001C-U+001F and U+FEFF next to U+00A0, U+2028 and U+3000, and a UTF-8 8bit text/plain leaf that starts and ends with U+180E; each leaf is trimmed by exactly the characters String.prototype.trim removes",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Trim edges in three text leaves",
+        "timestamp": "2026-01-01T00:00:00.000Z",
+        "mime_tree": {
+          "content_type": "multipart/mixed",
+          "children": [
+            {
+              "content_type": "text/plain",
+              "charset": "utf-8",
+              "transfer_encoding": "quoted-printable",
+              "payload_base64": "PUUyPTgwPUE4PTFFPTFGPUMyPTg1PUVGPUJCPUJGRmFrdHVyYSA0IDIwMCBFVVINCmtvbmVjPUMyPUEwPTFDPTFEPUMyPTg1PUUzPTgwPTgwDQo=",
+              "text": " \u001e\u001f﻿Faktura 4 200 EUR\r\nkonec \u001c\u001d　\r\n"
+            },
+            {
+              "content_type": "text/html",
+              "charset": "iso-8859-2",
+              "transfer_encoding": "8bit",
+              "payload_base64": "oB+FPHA+RmFrdHVyYSA0IDIwMCBFVVI8L3A+hR2gDQo=",
+              "text": " \u001f<p>Faktura 4 200 EUR</p>\u001d \r\n"
+            },
+            {
+              "content_type": "text/plain",
+              "charset": "utf-8",
+              "transfer_encoding": "8bit",
+              "payload_base64": "4aCORmFrdHVyYSA0IDIwMCBFVVLhoI4NCg==",
+              "text": "᠎Faktura 4 200 EUR᠎\r\n"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "shape": "B",
+        "canonical_json": "{\"from\":\"sender@example.com\",\"to\":\"user@example.com\",\"subject\":\"Trim edges in three text leaves\",\"timestamp\":\"2026-01-01T00:00:00.000Z\",\"parts\":[{\"k\":\"plain\",\"h\":\"6CJ5IzRsTZuHTTZTRnYiIKyD3uVQVc59E9gPAE/BA3E=\"},{\"k\":\"html\",\"h\":\"141JIg8JsSHCDIn0QS7u7odzKw2kxuGwYCdivTZ1Ff8=\"},{\"k\":\"plain\",\"h\":\"VQh60h+C5rEWBSXXd5TSs+DABPPiPR/aiQm7labCFgg=\"}]}",
+        "content_hash": "zjZlgu0ASKTNUwuFnMgk/e1fPyryYtZCvze6ZlGv+uI=",
+        "parts": [
+          {
+            "k": "plain",
+            "h": "6CJ5IzRsTZuHTTZTRnYiIKyD3uVQVc59E9gPAE/BA3E="
+          },
+          {
+            "k": "html",
+            "h": "141JIg8JsSHCDIn0QS7u7odzKw2kxuGwYCdivTZ1Ff8="
+          },
+          {
+            "k": "plain",
+            "h": "VQh60h+C5rEWBSXXd5TSs+DABPPiPR/aiQm7labCFgg="
+          }
+        ]
+      }
+    }
+  ]
+}
