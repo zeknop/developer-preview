@@ -116,7 +116,7 @@ async function main() {
 
   if (diagnostics) {
     // CONFORMANCE.md §2: `decoded_text_sha256_b64` and `unwrapped_text` are
-    // diagnostics, not measured values, and are not in the 10 575. They are
+    // diagnostics, not measured values, and are not in the 10 587. They are
     // computed and compared here anyway — a difference in the READ step that no
     // hash shows is worth knowing about — and reported apart, named, so the
     // report cannot be read as either a pass or a failure it is not.

@@ -309,7 +309,7 @@ def strip_zeknop_envelope(body: str) -> str:
     """
     outer = _outer_delivered_envelope(body)
     # A not-verified envelope is recognised but never taken off: the text is
-    # hashed as it is, so it can never recompute to a signature (spec §6.1).
+    # hashed as it is, so it does not recompute to a signature (spec §6.1).
     return body if outer is None or outer[0] == "not-verified" else outer[1]
 
 
@@ -360,7 +360,7 @@ def strip_html_envelope(body: str):
     comments are never searched for inside the part, exactly as the plain markers
     are not: a block quoted in a reply or an inline forward is content and
     stays in the hash. A not-verified envelope is recognised and NEVER taken off,
-    so such a part can never recompute to a signature.
+    so such a part does not recompute to a signature.
 
     Byte for byte the removal every signer of this protocol performs (§6.1).
     """

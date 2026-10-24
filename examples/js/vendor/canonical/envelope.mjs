@@ -110,7 +110,7 @@ export function stripZeknopEnvelope(body) {
   if (!body) return body;
   const outer = outerEnvelope(body);
   // A not-verified envelope is recognised but never taken off: the text is
-  // hashed as it is, so it can never recompute to a signature (spec §6.1).
+  // hashed as it is, so it does not recompute to a signature (spec §6.1).
   return outer && outer.kind !== 'not-verified' ? outer.content : body;
 }
 
@@ -173,7 +173,7 @@ function eolLength(text, at) {
  * Take the outer HTML envelope off an HTML part (spec §6.1, the HTML rule), as
  * { text, kind }: the sender's markup with the DOCTYPE back in front, and which
  * kind was outermost. A not-verified envelope is recognised and NEVER taken off,
- * so such a part can never recompute to a signature.
+ * so such a part does not recompute to a signature.
  */
 export function stripHtmlDeliveredEnvelope(body) {
   const text = String(body == null ? '' : body);

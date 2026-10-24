@@ -119,9 +119,46 @@ export function parseFirstMailbox(headerValue) {
   return extractBareAddress(first);
 }
 
-/** spec §9.3 text-leaf input: §2-normalized, truncated. Hashed by ./digest.mjs. */
+// ── BEGIN SHARED cutCodePoints (spec §2 "Body Size Limit") ───────────────────
+// The first `max` Unicode CODE POINTS of `text`, which is what §2 says, and not
+// the first `max` UTF-16 code units, which is what `substring` gives. A body over
+// the limit with a character outside the BMP in front of the cut (an emoji, a rare
+// ideograph, a musical sign) ended here in HALF of a surrogate pair — encoded as
+// U+FFFD — and in a whole code point in the Python readers, so the two sides
+// hashed two different bodies.
+// Allocates nothing and walks no further than it must: a body under the limit pays
+// one comparison, and a body over it is scanned for its first surrogate by the
+// engine itself — the code units before that one are code points, so the walk
+// starts there. `Array.from(text).slice(0, max).join('')` is the same answer and,
+// measured over 25 MB, 60 times the cost of the walk.
+// The text between these markers is ONE function, carried byte for byte by every
+// reader of this protocol that is written in JavaScript: a cut that differs by a
+// single code point is a body that hashes differently.
+function cutCodePoints(text, max) {
+  if (text.length <= max) return text;        // code points are never more than code units
+  const head = text.slice(0, max);
+  const first = head.search(/[\ud800-\udfff]/);
+  if (first === -1) return head;              // no surrogate: these units ARE code points
+  let i = first;                              // and so are the ones before the first
+  let n = first;
+  while (i < text.length && n < max) {
+    const c = text.charCodeAt(i);
+    if (c >= 0xd800 && c <= 0xdbff && i + 1 < text.length) {
+      const d = text.charCodeAt(i + 1);
+      i += d >= 0xdc00 && d <= 0xdfff ? 2 : 1; // only a valid pair is ONE code point
+    } else {
+      i += 1;
+    }
+    n += 1;
+  }
+  return text.slice(0, i);
+}
+// ── END SHARED cutCodePoints ─────────────────────────────────────────────────
+export { cutCodePoints };
+
+/** spec §9.3 text-leaf input: §2-normalized, cut to the §2 limit. Hashed by ./digest.mjs. */
 export function canonicalTextPartInput(text) {
-  return normalizeBody(text || '').substring(0, MAX_BODY_HASH);
+  return cutCodePoints(normalizeBody(text || ''), MAX_BODY_HASH);
 }
 
 /**

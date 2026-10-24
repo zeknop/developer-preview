@@ -1,6 +1,6 @@
 {
  "about": "The questions every implementation of the ZEKNOP canonical content specification is asked, with the answers of a reference implementation. Run your own implementation over `cases`, compare `expected` field by field, and report the result in the form CONFORMANCE.md gives.",
- "case_count": 5329,
+ "case_count": 5341,
  "cases": [
   {
    "expected": {
@@ -49600,10 +49600,162 @@
    "id": "05328-rfc2047",
    "kind": "text",
    "text": "=?utf-8?q?a?= =?utf-8?q?b?="
+  },
+  {
+   "expected": {
+    "manifest": "opaque"
+   },
+   "hex": "46726f6d3a2061406578616d706c652e6f72670d0a546f3a2062406578616d706c652e636f6d0d0a5375626a6563743a2073686170650d0a4d494d452d56657273696f6e3a20312e300d0a436f6e74656e742d547970653a206d756c7469706172742f616c7465726e61746976653b20626f756e646172793d221f534550220d0a0d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f706c61696e3b20636861727365743d7574662d380d0a0d0a416d6f756e74206475653a20313030204555520d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f68746d6c3b20636861727365743d7574662d380d0a0d0a3c703e416d6f756e74206475653a20313030204555523c2f703e0d0a2d2d5345502d2d0d0a",
+   "id": "05329-manifest-boundary-quoted-unit-sep",
+   "kind": "manifest"
+  },
+  {
+   "expected": {
+    "manifest": "opaque"
+   },
+   "hex": "46726f6d3a2061406578616d706c652e6f72670d0a546f3a2062406578616d706c652e636f6d0d0a5375626a6563743a2073686170650d0a4d494d452d56657273696f6e3a20312e300d0a436f6e74656e742d547970653a206d756c7469706172742f616c7465726e61746976653b20626f756e646172791f3d22534550220d0a0d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f706c61696e3b20636861727365743d7574662d380d0a0d0a416d6f756e74206475653a20313030204555520d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f68746d6c3b20636861727365743d7574662d380d0a0d0a3c703e416d6f756e74206475653a20313030204555523c2f703e0d0a2d2d5345502d2d0d0a",
+   "id": "05330-manifest-boundary-unit-sep-before-eq",
+   "kind": "manifest"
+  },
+  {
+   "expected": {
+    "manifest": "opaque"
+   },
+   "hex": "46726f6d3a2061406578616d706c652e6f72670d0a546f3a2062406578616d706c652e636f6d0d0a5375626a6563743a2073686170650d0a4d494d452d56657273696f6e3a20312e300d0a436f6e74656e742d547970653a206d756c7469706172742f616c7465726e61746976653b20626f756e646172792a303d1f533b20626f756e646172792a313d45500d0a0d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f706c61696e3b20636861727365743d7574662d380d0a0d0a416d6f756e74206475653a20313030204555520d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f68746d6c3b20636861727365743d7574662d380d0a0d0a3c703e416d6f756e74206475653a20313030204555523c2f703e0d0a2d2d5345502d2d0d0a",
+   "id": "05331-manifest-boundary-segment-unit-sep",
+   "kind": "manifest"
+  },
+  {
+   "expected": {
+    "manifest": "opaque"
+   },
+   "hex": "46726f6d3a2061406578616d706c652e6f72670d0a546f3a2062406578616d706c652e636f6d0d0a5375626a6563743a2073686170650d0a4d494d452d56657273696f6e3a20312e300d0a436f6e74656e742d547970653a206d756c7469706172742f616c7465726e61746976653b20626f756e646172792a3d7574662d3827272543322538355345500d0a0d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f706c61696e3b20636861727365743d7574662d380d0a0d0a416d6f756e74206475653a20313030204555520d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f68746d6c3b20636861727365743d7574662d380d0a0d0a3c703e416d6f756e74206475653a20313030204555523c2f703e0d0a2d2d5345502d2d0d0a",
+   "id": "05332-manifest-boundary-ext-nel",
+   "kind": "manifest"
+  },
+  {
+   "expected": {
+    "manifest": "plain|html"
+   },
+   "hex": "46726f6d3a2061406578616d706c652e6f72670d0a546f3a2062406578616d706c652e636f6d0d0a5375626a6563743a2073686170650d0a4d494d452d56657273696f6e3a20312e300d0a436f6e74656e742d547970653a206d756c7469706172742f616c7465726e61746976653b20626f756e646172792a3d7574662d3827272545462542422542465345500d0a0d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f706c61696e3b20636861727365743d7574662d380d0a0d0a416d6f756e74206475653a20313030204555520d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f68746d6c3b20636861727365743d7574662d380d0a0d0a3c703e416d6f756e74206475653a20313030204555523c2f703e0d0a2d2d5345502d2d0d0a",
+   "id": "05333-manifest-boundary-ext-bom",
+   "kind": "manifest"
+  },
+  {
+   "expected": {
+    "manifest": "plain|html"
+   },
+   "hex": "46726f6d3a2061406578616d706c652e6f72670d0a546f3a2062406578616d706c652e636f6d0d0a5375626a6563743a2073686170650d0a4d494d452d56657273696f6e3a20312e300d0a436f6e74656e742d547970653a206d756c7469706172742f616c7465726e61746976653b20626f756e646172792a3d7574662d3827275345502545462542422542460d0a0d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f706c61696e3b20636861727365743d7574662d380d0a0d0a416d6f756e74206475653a20313030204555520d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f68746d6c3b20636861727365743d7574662d380d0a0d0a3c703e416d6f756e74206475653a20313030204555523c2f703e0d0a2d2d5345502d2d0d0a",
+   "id": "05334-manifest-boundary-ext-bom-trailing",
+   "kind": "manifest"
+  },
+  {
+   "expected": {
+    "manifest": "plain|html"
+   },
+   "hex": "46726f6d3a2061406578616d706c652e6f72670d0a546f3a2062406578616d706c652e636f6d0d0a5375626a6563743a2073686170650d0a4d494d452d56657273696f6e3a20312e300d0a436f6e74656e742d547970653a206d756c7469706172742f616c7465726e61746976653b20626f756e646172792a3d7574662d3827272543322541305345500d0a0d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f706c61696e3b20636861727365743d7574662d380d0a0d0a416d6f756e74206475653a20313030204555520d0a2d2d5345500d0a436f6e74656e742d547970653a20746578742f68746d6c3b20636861727365743d7574662d380d0a0d0a3c703e416d6f756e74206475653a20313030204555523c2f703e0d0a2d2d5345502d2d0d0a",
+   "id": "05335-manifest-boundary-ext-nbsp",
+   "kind": "manifest"
+  },
+  {
+   "expected": {
+    "cut": "TimtGKufQtfCM1AHcaOdfIUrIAuvMo/QD7vj/s6h61Y="
+   },
+   "id": "05336-size-limit-ascii-only",
+   "kind": "cut",
+   "parts": [
+    {
+     "count": 1049000,
+     "repeat": "A"
+    }
+   ],
+   "value": "1049000 x A"
+  },
+  {
+   "expected": {
+    "cut": "/8d7jIkb7vHafbEku5NM1v2Czcf8FSlLOVEZXfKQl6M="
+   },
+   "id": "05337-size-limit-astral-before-the-cut",
+   "kind": "cut",
+   "parts": [
+    {
+     "count": 1048575,
+     "repeat": "A"
+    },
+    {
+     "literal": "\ud83d\ude42"
+    },
+    {
+     "count": 1000,
+     "repeat": "B"
+    }
+   ],
+   "value": "1048575 x A, U+1F642, 1000 x B"
+  },
+  {
+   "expected": {
+    "cut": "TimtGKufQtfCM1AHcaOdfIUrIAuvMo/QD7vj/s6h61Y="
+   },
+   "id": "05338-size-limit-astral-after-the-cut",
+   "kind": "cut",
+   "parts": [
+    {
+     "count": 1048576,
+     "repeat": "A"
+    },
+    {
+     "literal": "\ud83d\ude42"
+    },
+    {
+     "count": 1000,
+     "repeat": "B"
+    }
+   ],
+   "value": "1048576 x A, U+1F642, 1000 x B"
+  },
+  {
+   "expected": {
+    "cut": "G7NB/AmhPoGEYfzpJ3DPXEpBLPJegt+fGvD13MzaYJM="
+   },
+   "id": "05339-size-limit-astral-under-the-limit",
+   "kind": "cut",
+   "parts": [
+    {
+     "count": 600000,
+     "repeat": "\ud83d\ude42"
+    },
+    {
+     "count": 1000,
+     "repeat": "B"
+    }
+   ],
+   "value": "600000 x U+1F642, 1000 x B"
+  },
+  {
+   "expected": {
+    "cut": "j+XD/rLh/W/xZBXKrb9VHrnItOhulFDc9+kKPwZm6Wk="
+   },
+   "id": "05340-size-limit-plane-two-before-the-cut",
+   "kind": "cut",
+   "parts": [
+    {
+     "count": 1048575,
+     "repeat": "A"
+    },
+    {
+     "literal": "\ud840\udc00"
+    },
+    {
+     "count": 100,
+     "repeat": "B"
+    }
+   ],
+   "value": "1048575 x A, U+20000, 100 x B"
   }
  ],
  "determinism": "The cases come from `seed` and `generator_count`. Dict keys are sorted, the case order is the generation order (an id is the ordinal), and the file is ASCII: every code point outside ASCII is a \\uXXXX escape, so a parser cannot read this file two ways.",
  "forms": {
+  "cut": "SHA-256 of the body a text leaf is hashed with \u2014 the strict form of the text cut to the \u00a72 size limit in code points \u2014 UTF-8, base64",
   "free": "SHA-256 of the free text form of the text (canonical-content.md \u00a72b), UTF-8, base64",
   "html": "SHA-256 of the text left after the \u00a76.1 removal, UTF-8, base64",
   "manifest": "the `k` of each leaf, in order, joined with `|`",
@@ -49619,6 +49771,14 @@
     "free"
    ],
    "input": "`hex` (the bytes) and `label` (the declared charset)"
+  },
+  "cut": {
+   "asks": "canonical-content.md \u00a72 including the \"Body Size Limit\": the text is normalised and then cut to the first 1 048 576 CODE POINTS \u2014 not the first 1 048 576 UTF-16 code units, which is a different body whenever the code point in front of the cut is outside the BMP. The answer is the hash of the body a text leaf would be hashed with, so a cut that differs by one code point differs as a hash",
+   "count": 5,
+   "expected": [
+    "cut"
+   ],
+   "input": "`parts`: the body as a RECIPE \u2014 pieces of the form `{\"literal\": \"s\"}` and `{\"repeat\": \"s\", \"count\": n}`, joined in order. `value` says the same recipe in words. A body over the \u00a72 limit is a megabyte and is not written out in this file"
   },
   "html": {
    "asks": "canonical-content.md \u00a72b over an HTML part. The strict form is not asked: it hashes the HTML source, which the vector files pin already",
@@ -49639,7 +49799,7 @@
   },
   "manifest": {
    "asks": "canonical-content.md \u00a79.1 (the walk) and \u00a79.2a (the one reading of a boundary parameter). The answer is a STRUCTURE, not a hash: the `k` of each leaf the walk finds, in order, joined with `|`. A reader that cannot read the message at all answers `error:<exception class>`",
-   "count": 17,
+   "count": 24,
    "expected": [
     "manifest"
    ],

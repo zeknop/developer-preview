@@ -40,7 +40,7 @@ import { extractPartsManifest, parsePart } from '../vendor/canonical/mime.mjs';
 import { buildForVector } from './envelope-build.mjs';
 import { hex, signatureInput } from './signature-input.mjs';
 import { timestampDecision } from './timestamp.mjs';
-import { renderVector } from './vector-render.mjs';
+import { bodyFromRecipe, renderVector } from './vector-render.mjs';
 
 /** The vector files, in the order CONFORMANCE.md §1 prints them. */
 export const VECTOR_FILES = [
@@ -100,6 +100,19 @@ class Tally {
 const hashText = (text) => sha256Base64(utf8Bytes(text));
 
 /**
+ * The number of CODE POINTS in a string, which is the unit §2 counts a body in.
+ *
+ * `String.prototype.length` is the number of UTF-16 code units and is a different
+ * number as soon as one character is outside the BMP: `e2e-004` cuts a body whose
+ * last code point is U+1F642, and `.length` would report 1 048 577 where the vector
+ * says 1 048 576. Spreading the string iterates it, and a string iterator yields code
+ * points by definition.
+ */
+function codePointCount(text) {
+  return [...text].length;
+}
+
+/**
  * A Subject field as it arrives → the text §5 reads out of it.
  *
  * A field arrives FOLDED, and it is unfolded before the encoded words are read:
@@ -124,9 +137,10 @@ async function runCanonicalContent(data) {
     if (vector.expected.canonical_json != null) {
       pairs.push(['canonical_json', result.canonicalJson, vector.expected.canonical_json]);
     } else {
-      // e2e-003: its body is a megabyte the file does not store, so the string
-      // comparison is the one thing that cannot be made. The hash it was taken
-      // over is reproducible from the described input and IS compared.
+      // e2e-003 and e2e-004: the body is a megabyte the file does not store, so
+      // the string comparison is the one thing that cannot be made. The hash it
+      // was taken over is reproducible from the described input — a length, or a
+      // recipe — and IS compared, and so is the length after the cut.
       tally.skip(vector.id, 'the canonical JSON is not stored in the file; compared on the hash');
     }
     pairs.push(['content_hash', result.hash, vector.expected.content_hash]);
@@ -152,7 +166,7 @@ async function runCanonicalContent(data) {
     if (vector.expected.truncated_body_length != null) {
       pairs.push([
         'truncated_body_length',
-        result.canonical.body.length,
+        codePointCount(result.canonical.body),
         vector.expected.truncated_body_length,
       ]);
     }
@@ -160,7 +174,7 @@ async function runCanonicalContent(data) {
     // the bytes (CONFORMANCE.md). It is not compared and not counted.
     tally.vector(vector.id, pairs);
   }
-  return { tally, note: 'e2e-003 on the hash: no canonical JSON stored' };
+  return { tally, note: 'e2e-003 and e2e-004 on the hash: no canonical JSON stored' };
 }
 
 // ── free-form-vectors.json ───────────────────────────────────────────────────
@@ -309,6 +323,13 @@ async function formsFor(testCase) {
     return { manifest };
   }
 
+  if (kind === 'cut') {
+    // A body over the §2 size limit, given as a recipe. It is asked through the
+    // entry point this client really hashes a text leaf with, so what is compared
+    // is the body it WOULD hash: the §2 form, cut to the limit in code points.
+    return { cut: await hashText(canonicalTextPartInput(bodyFromRecipe(testCase.parts))) };
+  }
+
   let text;
   let isHtml = false;
   let decoded = null;
@@ -343,7 +364,7 @@ async function formsFor(testCase) {
 async function runDifferential(data) {
   const tally = new Tally();
   // `decoded_text_sha256_b64` and `unwrapped_text` are diagnostics and are not
-  // in the 10 575 (CONFORMANCE.md §2). They are computed and compared, and
+  // in the 10 587 (CONFORMANCE.md §2). They are computed and compared, and
   // counted separately, so a mismatch there still names itself.
   const diagnostics = new Tally();
   for (const testCase of data.cases) {

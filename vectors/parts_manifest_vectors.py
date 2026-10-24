@@ -72,6 +72,32 @@ VECTORS = [
      "XX", ["opaque"], "and it wins wherever in the field it stands"),
     ("pm-020-empty-plain", '; boundary=""', "", ["opaque"],
      "an empty boundary is no boundary (point 6)"),
+    # The white space of point 6 is the trim set of §2 step 4 — the signer's `trim()` and
+    # the `\s` of its RegExp — and NOT the white space of the reader's own language. The
+    # seven below are written over the code points where Python's `str.strip()`,
+    # `str.isspace()` and `re` `\s` differ from that set: U+001C-U+001F and U+0085, which
+    # Python takes and the set does not, and U+FEFF, which the set takes and Python does
+    # not. A character outside ASCII is written in the RFC 2231 extended spelling, because
+    # a raw non-ASCII byte in a header field is read by the signer as latin-1 and by the
+    # portal as UTF-8 — a different question, measured nowhere here.
+    ("pm-021-quoted-unit-sep", '; boundary="\u001fSEP"', "\u001fSEP", ["opaque"],
+     "U+001F (UNIT SEPARATOR) inside the quotes is not trim-set white space, so it stays "
+     "in the boundary and --SEP is no delimiter: one opaque leaf"),
+    ("pm-022-unit-sep-before-eq", '; boundary\u001f="SEP"', "", ["opaque"],
+     "U+001F between the attribute and the '=' is not white space either, so this is no "
+     "`boundary=` parameter at all — §9.2 fail-closed"),
+    ("pm-023-segment-unit-sep", '; boundary*0=\u001fS; boundary*1=EP', "\u001fSEP",
+     ["opaque"],
+     "and it is not skipped before a segment value: the segments join to U+001F + SEP"),
+    ("pm-024-ext-nel", "; boundary*=utf-8''%C2%85SEP", "\u0085SEP", ["opaque"],
+     "U+0085 (NEL) percent-decoded out of an extended segment stays in the boundary"),
+    ("pm-025-ext-bom", "; boundary*=utf-8''%EF%BB%BFSEP", "SEP", ["plain", "html"],
+     "U+FEFF IS trim-set white space, so it comes off and the container splits"),
+    ("pm-026-ext-bom-trailing", "; boundary*=utf-8''SEP%EF%BB%BF", "SEP",
+     ["plain", "html"], "the same at the end of the value"),
+    ("pm-027-ext-nbsp", "; boundary*=utf-8''%C2%A0SEP", "SEP", ["plain", "html"],
+     "the control: U+00A0 is in BOTH sets, so this vector reads the same before and after "
+     "the trim set was named in point 6"),
 ]
 
 

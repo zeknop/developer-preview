@@ -18,10 +18,12 @@ What is compared, and what is not, said here rather than left to be inferred:
   the canonical JSON string wherever the file stores one, the parts manifest and
   the truncated body length wherever a vector carries them, and
   `must_differ_from` as a comparison between two hashes of this run's own;
-* **one comparison is skipped**, with its reason printed beside the count: the
-  canonical JSON STRING of the one vector whose input is a body over the maximum
-  size, which the file does not store. Its hash is compared. The validator
-  shipped with the vectors skips that vector for the same reason;
+* **two comparisons are skipped**, with the reason printed beside the count: the
+  canonical JSON STRING of the two vectors whose input is a body over the maximum
+  size, which the file does not store — `e2e-003`, whose body is a length, and
+  `e2e-004`, whose body is a recipe. The hash of each is compared, and so is the
+  length after the cut. The validator shipped with the vectors skips `e2e-003` for
+  the same reason and builds `e2e-004` from its recipe;
 * **two kinds of field are not compared, by the file's own instruction.**
   `warning_logged` is about one of our readers writing a line in a log and not
   about any bytes; `CONFORMANCE.md` §2 says an implementation is not held to it
@@ -70,7 +72,7 @@ class FileResult:
     `compared` counts the units `CONFORMANCE.md` §1 counts, which are not the same
     unit in every file: a vector file is counted per VECTOR — every field of a
     vector has to match for that vector to be a match — and `differential/cases.json`
-    is counted per FORM, which is what makes its total 10 575 over 5 329 cases.
+    is counted per FORM, which is what makes its total 10 587 over 5 341 cases.
     The two diagnostics the differential carries are compared and reported, and
     are not in the totals, which the file's own notes ask for.
     """
@@ -164,7 +166,8 @@ def _canonical_content(data, result: FileResult) -> None:
             )
         result.case(case, fields)
     result.note = (
-        "e2e-003 on the hash: the file stores no canonical JSON for a body over the maximum"
+        "e2e-003 and e2e-004 on the hash: the file stores no canonical JSON for a body "
+        "over the maximum"
     )
 
 
@@ -392,6 +395,14 @@ def _differential(data, result: FileResult) -> None:
                 mine = {"manifest": "|".join(entry["k"] for entry in leaves)}
             except Exception as exc:  # noqa: BLE001 — a reader that cannot read it says so
                 mine = {"manifest": f"error:{type(exc).__name__}"}
+        elif kind == "cut":
+            # A body over the §2 size limit, given as a recipe. Asked through the
+            # entry point this client really hashes a text leaf with, so what is
+            # compared is the body it WOULD hash: the §2 form, cut to the limit, and
+            # the limit counted in CODE POINTS (`str` is a sequence of code points,
+            # so the slice in `canonical_body_field` is already that cut).
+            body = vector_message.body_from_recipe(case["parts"])
+            mine = {"cut": _sha(canonical.canonical_body_field(body, canonical.MAX_BODY_SIZE))}
         else:
             if kind == "bytes":
                 text = mime_walk.decode_text(bytes.fromhex(case["hex"]), case["label"] or None)

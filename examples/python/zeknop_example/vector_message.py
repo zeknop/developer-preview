@@ -27,6 +27,22 @@ import base64
 CRLF = b"\r\n"
 
 
+def body_from_recipe(parts) -> str:
+    """A body given as a RECIPE → the text it stands for.
+
+    `{"literal": s}` and `{"repeat": s, "count": n}` pieces, joined in order. A body
+    over the §2 size limit is a megabyte, which neither `vectors.json` nor
+    `differential/cases.json` writes out: `e2e-004` carries it as `input.body_parts`
+    and a `cut` case of the differential as `parts`, in this one vocabulary. A length
+    alone would not do, because it cannot say WHICH code point sits in front of the
+    cut, and that is the whole question those cases ask.
+    """
+    return "".join(
+        piece["literal"] if "literal" in piece else piece["repeat"] * piece["count"]
+        for piece in parts
+    )
+
+
 def _wrap_base64(text: str) -> bytes:
     """Base64 as a mail client writes it: lines of at most 76 characters."""
     return CRLF.join(text[at : at + 76].encode("ascii") for at in range(0, len(text), 76)) or b""
@@ -115,8 +131,13 @@ def render(vector: dict, timestamp_header: bool = True) -> bytes:
 
     if isinstance(data.get("body"), str):
         body = data["body"]
+    elif isinstance(data.get("body_parts"), list):
+        # A body over the maximum of §2 whose last code point before the cut is the
+        # point of the vector: given as a recipe, so the file carries no megabyte and
+        # still says exactly which code point that is.
+        body = body_from_recipe(data["body_parts"])
     elif isinstance(data.get("body_length"), int):
-        # The one vector that stores no body: `body_length` characters A, over the
+        # The other vector that stores no body: `body_length` characters A, over the
         # maximum of §2, so the truncation is reproducible without a megabyte of
         # JSON in the file.
         body = "A" * data["body_length"]

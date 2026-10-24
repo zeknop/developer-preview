@@ -13,8 +13,10 @@ The two hashes of a message have exactly one right answer, so this example does
 not reimplement the way they are computed: the files under
 `zeknop_example/canonicalization/` are a copy of the ZEKNOP reference
 implementation of the canonical content specification, taken from one fixed
-revision of it and carrying this licence header. Apart from that header, the
-normalisation of the line endings, and the substitutions recorded with the copy —
+revision of it and carrying this licence header in place of the one the source
+file carries: the same licence and the same copyright holder, and in addition
+what the file is a copy of. Apart from that header, the normalisation of the
+line endings, and the substitutions recorded with the copy —
 each of them inside a comment or a docstring, neither of which the program
 branches on; the proof compares the two syntax trees with the docstrings set
 aside, so a changed docstring changes `__doc__` and nothing the program computes

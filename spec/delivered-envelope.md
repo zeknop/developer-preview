@@ -1,7 +1,7 @@
 <!-- Developer Preview copy of the ZEKNOP Signed Email specification. -->
 **`delivered-envelope.md`** — what is delivered. Version 1.4 (2026-09-17).
 Publisher: Zeknod OÜ. Licence: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-Source digest (SHA-256 of the file this copy was made from): `aeb6469cceb618c1e0c6388e0140dfbfaaa0cb8b073ae4175c1cb1e0ee966854`.
+Source digest (SHA-256 of the file this copy was made from): `e9469359e6a6e605adf3c6d4cedd7659cdb306833f9afaf3950a8c7f794bc87a`.
 This copy differs from that file in this header and in the reference rewrites described in
 [README.md](README.md): a pointer to something a reader outside the publisher's repository
 cannot open becomes a pointer inside this package or is dropped. No normative sentence is
@@ -482,7 +482,7 @@ outer envelope of a delivered plain-text body the same way:
 5. **When the outer envelope is the not-verified envelope, nothing is taken off**: the text
    is hashed as it is. The not-verified envelope is recognised (its kind is reported to the
    verdict, §6) but never removed before hashing, so a text whose outer envelope is the
-   not-verified envelope can never recompute to a signature — whatever `X-ZEKNOP-*` headers
+   not-verified envelope does not recompute to a signature — whatever `X-ZEKNOP-*` headers
    it carries, the hash does not match. A not-verified envelope inside the content of a
    positive envelope (a quote) is content like any other text.
 
@@ -509,7 +509,7 @@ the part's own bytes, not on a resolved text, because the blocks are written as 
 4. What is left — the DOCTYPE, if any, and the sender's markup between the two blocks — is
    the content, byte for byte as it arrived.
 5. As in a plain part, a **not-verified** HTML envelope is recognised and **nothing is taken
-   off**: the part is hashed as it is, so it can never recompute to a signature.
+   off**: the part is hashed as it is, so it does not recompute to a signature.
 
 A head or tail block quoted inside the content (a reply or a forward that carries an earlier
 message, whether as `>` lines or inside a `<blockquote>`) is content: it is not at an end of

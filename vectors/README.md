@@ -3,7 +3,7 @@ Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
           https://creativecommons.org/licenses/by/4.0/
 Publisher: Zeknod OÜ
 Part of: the ZEKNOP Signed Email specification, Developer Preview
-Date: 2026-10-23
+Date: 2026-10-24
 -->
 
 # ZEKNOP test vectors
@@ -22,14 +22,14 @@ newer and the standard library alone.
 
 | File | Cases | What it fixes |
 |---|---|---|
-| `vectors.json` | 72 | The canonical content object and its hash — `../spec/canonical-content.md` §2, §3, §4, §5, §9 |
+| `vectors.json` | 73 | The canonical content object and its hash — `../spec/canonical-content.md` §2, §3, §4, §5, §9 |
 | `free-form-vectors.json` | 53 | The free text form — `../spec/canonical-content.md` §2b |
 | `charset-vectors.json` | 40 text parts + 14 subjects | Reading declared charsets (§2 step 0) and RFC 2047 encoded words (§5) |
-| `parts-manifest-vectors.json` | 20 | The one reading of a boundary parameter and the parts manifest — §9.1, §9.2a |
+| `parts-manifest-vectors.json` | 27 | The one reading of a boundary parameter and the parts manifest — §9.1, §9.2a |
 | `signature-input-vectors.json` | 10 | The bytes a signature is made over — `../spec/signature-input.md` §2 |
 | `timestamp-vectors.json` | 6 | The timestamp decisions — `../spec/canonical-content.md` §8 |
 | `delivered-envelope-vectors.json` | 4 build + 5 build_html + 21 strip + 8 strip_html | Writing and removing the delivered block — `../spec/delivered-envelope.md` §3, §6, §7 |
-| `differential/cases.json` | 5 329 | The same questions over seeded inputs, with reference answers — see `differential/` below |
+| `differential/cases.json` | 5 341 | The same questions over seeded inputs, with reference answers — see `differential/` below |
 
 Beside the JSON there is a script per file:
 
@@ -54,7 +54,7 @@ From the root of this package:
 ```sh
 # every hash in vectors.json, recomputed
 python3 vectors/validate_vectors.py
-# => Results: 71 passed, 0 failed, 1 skipped out of 72 vectors
+# => Results: 72 passed, 0 failed, 1 skipped out of 73 vectors
 
 # each generator against the JSON beside it; exit 0 = no deviation
 python3 vectors/charset_vectors.py --check
@@ -69,12 +69,16 @@ that is what you want.
 
 Three details worth knowing before you read the output:
 
-- `validate_vectors.py` skips one vector of the 72, `e2e-003-body-truncation`. It fixes
+- `validate_vectors.py` skips one vector of the 73, `e2e-003-body-truncation`. It fixes
   the truncation of a body over 1 048 576 characters and carries the resulting hash, but
   not the megabyte of canonical JSON it was taken over, so this script has nothing to
-  recompute from. 71 of 72 are recomputed; a skip is reported, never counted as a pass.
+  recompute from. 72 of 73 are recomputed; a skip is reported, never counted as a pass.
   Your own implementation is better off than the script here: it can build the body from
   the vector's `body_length` and check the hash. `CONFORMANCE.md` says how.
+  `e2e-004-body-cut-code-points` is the other vector with no stored canonical JSON, and
+  it is NOT skipped: its body is given as a recipe (`input.body_parts`), the script
+  builds that body, applies the one rule of §2 the vector is about — the cut to the
+  first 1 048 576 code points — and recomputes the hash like any other vector.
 - The `regenerate` field inside the JSON files, and the usage lines inside the scripts,
   name the path the vectors have in the specification's own source tree
   (`spec/test-vectors/…`). In this package they are in `vectors/`.
@@ -104,17 +108,21 @@ Two notes on how these files were cut for publication:
 
 ## differential/
 
-`differential/cases.json` asks the same questions as the files above, but over 5 329
+`differential/cases.json` asks the same questions as the files above, but over 5 341
 seeded inputs instead of hand-picked ones: every code point of the trim set and its
 neighbours, line endings and their mixtures, combining sequences, sampled code points
 from every plane, named and numeric character references, markup edges, our own delivered
 blocks in the places a reply puts them, the reshaping an ordinary forward does, the
-multi-byte encodings of the standard over valid and invalid bytes, RFC 2047 subjects, and
-messages whose boundary is written in RFC 2231 segments.
+multi-byte encodings of the standard over valid and invalid bytes, RFC 2047 subjects,
+messages whose boundary is written in RFC 2231 segments or with a character the trim set
+does not hold, and bodies over the §2 size limit.
 
 Each case carries its input and, under `expected`, the answers of a reference
 implementation. `CONFORMANCE.md` says what to compare for each kind of case and how to
-report the result.
+report the result. Two kinds of case do not carry their input as text: a `manifest` case
+carries a whole message as hex, and a `cut` case carries its body as a RECIPE — pieces of
+the form `{"literal": "s"}` and `{"repeat": "s", "count": n}`, joined in order — because a
+body over the size limit is a megabyte and does not belong in a file meant to be read.
 
 The cases come from the seed in the file (`20260923`) and the generator count beside it.
 The file is ASCII — every code point outside ASCII is a `\uXXXX` escape — because the

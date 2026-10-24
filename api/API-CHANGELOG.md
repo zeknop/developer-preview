@@ -15,6 +15,43 @@ The normative description of the signature input itself lives in `../spec/signat
 this package; this file says when something arrived and what a client written earlier
 experiences.
 
+## 1.8 — the three refusals of `POST /v1/sign`, written down (2026-10)
+
+No version change and no change to the relay: no field moves, no answer is different from the
+answer it was yesterday, nothing a caller sends changes meaning, and the number of the contract
+stays 1.8. What changes is this file and the README beside it. The three refusals below have
+been answered this way for the whole of 1.8 and were written down nowhere a client reads — and
+one of them, the `404`, is declared in `openapi-public.json` with nothing beside it but the
+words `Not Found`, so a caller met a status code with no meaning attached to it.
+
+**`401 Invalid API key`** — the API key is not one this relay holds for that identity. The key
+is looked up together with the `uuid` the request names, so a key that is perfectly good for
+another identity on the same relay is answered this way too. A caller cannot tell "no such key"
+from "not your uuid", and it should not be able to: the other answer would confirm which
+identities exist.
+
+**`403`** — the key is good and the relay will still not sign, and the `detail` says which of
+four states it is: the identity is not active (`UUID is suspended, cannot sign`, with the
+status itself in the text), the identity has been revoked (`UUID has been revoked`), the `From`
+address of the request is not one that identity may send as (`Sender address does not match
+registered identity`), or the deployment's own policy does not let that identity sign, which a
+domain identity meets on a deployment that keeps domain signing for a paid plan. The route does
+not *declare* `403` in `openapi-public.json`; it answers it, which is why the README carries a
+table of the codes the document is thinner than the relay about.
+
+**`404 UUID not found`** — this relay has no identity with a signing key under that uuid: it was
+never registered here, or no signing key of this relay belongs to it. It is **not** the "not
+active" case — an identity this relay knows and will not sign for is the `403` above. Other
+routes of this relay, the ones this package does not describe, resolve a key straight to an
+*active* identity and answer `404 Identity not found or not active` for both halves of that, so
+the situation that is a `403` here is a `404` there. That difference is recorded rather than
+unified: a client of `POST /v1/sign` should read `detail` and must not carry a rule about these
+codes from one route of the relay to another.
+
+The sentences quoted above are what a caller reads. `detail` is the one field of a refusal a
+client is told to act on, so changing one of these sentences is a change to this contract and
+belongs in this file.
+
 ## 1.8 — a refused activation code is refused the same way, and an address is one caller (2026-10)
 
 No version change: no field moves, nothing a caller sends changes meaning, and the number of

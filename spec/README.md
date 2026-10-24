@@ -137,7 +137,7 @@ sentence, says what it rests on, and says what in this package you can rerun ins
 marked as the publisher's, it is normative for nothing, and it never adds a rule the document
 does not make. A sentence that was ambiguous, absolute about security, or at odds with another
 part of a document is not a note's business: it was corrected in the specification itself
-before these copies were made (see the entry of 2026-10-24 in `CHANGELOG.md`).
+before these copies were made (see the two entries of 2026-10-24 in `CHANGELOG.md`).
 
 **What is left out.** `signature-input.md` §9 describes an operator-side service that checks a
 copy forwarded by an ordinary mail client, and its trust model. It is not part of this preview.

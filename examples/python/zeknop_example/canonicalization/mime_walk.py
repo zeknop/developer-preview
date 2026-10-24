@@ -37,7 +37,7 @@ from urllib.parse import unquote
 # RELATIVE import on purpose: this module and canonical.py are ONE
 # implementation, and an absolute import would pin them to one package name
 # and force anything else that needs the same canonicalisation to fork a copy.
-from .canonical import normalize_body, trim, MAX_BODY_SIZE
+from .canonical import normalize_body, trim, MAX_BODY_SIZE, TRIM_CHARS
 # The shared reading of a legacy single-byte charset (generated table). Every
 # reader of this protocol reads such a part with the same table.
 from .single_byte import single_byte_encoding, decode_single_byte, encode_single_byte  # noqa: F401
@@ -100,8 +100,21 @@ def _parse_header_fields(header_bytes: bytes):
 #      one opaque leaf (§9.2, fail-closed).
 _ATTR_CHARS = frozenset("!#$%&'+.^_`{|}~-0123456789"
                         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+# The white space of this section is the signer's, not Python's: `\s` in the signer's
+# RegExp, and `trim()` after it, are both ECMAScript WhiteSpace + LineTerminator —
+# exactly the 25 code points of TRIM_CHARS (spec §2 step 4). Python's own `\s` and
+# `str.isspace()` are a DIFFERENT set (they also take U+001C-U+001F and U+0085 and
+# they leave U+FEFF), so a boundary written with one of those characters would make
+# this walker read a different container from the one the signature was made over.
+_WS = "[" + "".join(r"\u%04x" % ord(c) for c in TRIM_CHARS) + "]"
+# White space by EITHER reading, for a header field NAME (first_raw_header): the trim
+# set and every code point Python's str.isspace() takes. All of them are in the Basic
+# Multilingual Plane.
+_NAME_WHITE_SPACE = "".join(
+    sorted(set(TRIM_CHARS) | {chr(c) for c in range(0x10000) if chr(c).isspace()}))
 # The signer's own pattern, as JavaScript spells it: `new RegExp(`${key}\\s*=\\s*"([^"]+)"|${key}\\s*=\\s*"?([^";]+)"?`, 'i')`
-_BOUNDARY_RE = re.compile(r'boundary\s*=\s*"([^"]+)"|boundary\s*=\s*"?([^";]+)"?', re.I)
+_BOUNDARY_RE = re.compile(
+    f'boundary{_WS}*={_WS}*"([^"]+)"|boundary{_WS}*={_WS}*"?([^";]+)"?', re.I)
 
 
 def _parameter_segments(value: str):
@@ -129,7 +142,7 @@ def _parameter_segments(value: str):
             continue                             # white space here = not a segment
         i += 1
         j = i
-        while j < n and value[j].isspace():
+        while j < n and value[j] in TRIM_CHARS:
             j += 1
         raw = None
         if j < n and value[j] == '"':
@@ -147,7 +160,7 @@ def _parameter_segments(value: str):
                 k += 1
         if raw is None:
             value_start = i
-            while i < n and not value[i].isspace():
+            while i < n and value[i] not in TRIM_CHARS:
                 i += 1
             raw = value[value_start:i]
             if raw.endswith(";"):
@@ -209,7 +222,7 @@ def usable_boundary(content_type: str) -> str:
     match = _BOUNDARY_RE.search(_folded_parameters(unfold_header(content_type or "")))
     if not match:
         return ""
-    return (match.group(1) or match.group(2) or "").strip()
+    return (match.group(1) or match.group(2) or "").strip(TRIM_CHARS)
 
 
 def _split_multipart(body: bytes, boundary: bytes) -> list[bytes]:
@@ -274,8 +287,13 @@ def _split_multipart(body: bytes, boundary: bytes) -> list[bytes]:
 
 def decode_cte(body_raw: bytes, cte: str) -> bytes:
     """Remove the Content-Transfer-Encoding. Unknown encodings fall back to
-    identity — the bytes still get hashed, nothing is silently dropped."""
-    enc = (cte or "").strip().lower()
+    identity — the bytes still get hashed, nothing is silently dropped.
+
+    Trimmed by TRIM_CHARS and not by Python's own white space, for the reason §9.2a
+    gives for the boundary: a reader written in JavaScript trims this field with
+    `.trim()`, so `base64` with a U+001F in front of it decoded here and did NOT
+    decode there — two different leaf hashes over the same part."""
+    enc = (cte or "").strip(TRIM_CHARS).lower()
     if enc == "base64":
         try:
             return base64.b64decode(re.sub(rb"\s+", b"", body_raw), validate=False)
@@ -376,7 +394,7 @@ def first_raw_header(raw: bytes, name: str) -> str:
     would hand back a value Python has already decoded with its own RFC 2047
     reading, and compat32 would hand back an 8-bit header as surrogate escapes.
     Section 5 is decided by decode_encoded_words over this text, which is the
-    text the portal's parseHeaderBlock builds from the same bytes.
+    text a reader written in JavaScript builds from the same bytes.
     """
     header_bytes, _ = _split_headers(raw)
     lower = name.lower()
@@ -390,7 +408,20 @@ def first_raw_header(raw: bytes, name: str) -> str:
         idx = line.find(":")
         if idx <= 0:
             continue
-        fields.append([line[:idx].strip().lower(), line[idx + 1:]])
+        # The NAME is trimmed by white space of EITHER reading — the trim set (what a
+        # JavaScript reader's .trim() removes) and Python's own str.isspace() — and
+        # this is a decision to FAIL CLOSED, not to agree with the signer. A signer
+        # that matches a field name as RFC 5322 spells it never trims it, so for that
+        # signer `Subject : x` or `Subject<U+FEFF>: x` is no Subject at all. A lenient
+        # mail client may still show such a line as the subject. Reading the name
+        # exactly as the signer does (untrimmed) would therefore let a line ADDED after
+        # signing — `Subject : Pay 10000` ahead of the signed `Subject: Pay 10` — pass
+        # here while a reader is shown the added text. Trimmed by both sets, any field
+        # a lenient reader could take for the Subject is the Subject here: the hash is
+        # then recomputed over it and a subject the signature does not cover never
+        # verifies. The price is a `fail` on signed mail whose header carries white
+        # space inside a field NAME, which RFC 5322 §2.2 does not allow.
+        fields.append([line[:idx].strip(_NAME_WHITE_SPACE).lower(), line[idx + 1:]])
     for field_name, value in fields:
         if field_name == lower:
             return value
@@ -446,7 +477,8 @@ def parse_part(raw: bytes) -> Part:
     filename = hdr.get_filename()
     content_id = hdr.get("Content-ID")
     charset = hdr.get_content_charset()
-    cte = (hdr.get("Content-Transfer-Encoding") or "").strip().lower()
+    # Trimmed by the set, like decode_cte above and for the same reason.
+    cte = (hdr.get("Content-Transfer-Encoding") or "").strip(TRIM_CHARS).lower()
 
     part = Part(
         content_type=content_type,

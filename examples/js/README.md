@@ -151,10 +151,12 @@ two lists that differ is the fastest way to see a report over edited vectors.
 
 Two things in the output are worth reading rather than skipping:
 
-- **`SKIP`** names the one vector that cannot be compared as a string. `e2e-003-body-truncation`
-  describes a body of 1 049 000 characters, and the file does not store the megabyte of
-  canonical JSON its hash was taken over. The hash and the truncated length are both
-  reproducible and both compared; only the string comparison is skipped.
+- **`SKIP`** names the two vectors that cannot be compared as a string.
+  `e2e-003-body-truncation` describes a body of 1 049 000 characters and
+  `e2e-004-body-cut-code-points` gives one as a recipe whose last code point before the cut
+  is U+1F642; for neither does the file store the megabyte of canonical JSON the hash was
+  taken over. The hash and the truncated length — in CODE POINTS — are reproducible for both
+  and both are compared; only the string comparison is skipped.
 - **`diagnostics`** are the fields `../../vectors/CONFORMANCE.md` §2 puts outside the measured totals
   (`decoded_text_sha256_b64`, `unwrapped_text`). They are compared here anyway and reported
   apart. Four of them differ from the reference, all four about the READ step and none about
@@ -210,14 +212,6 @@ about that comparison and about nothing else: it does not say the rules are righ
 this copy computes what the build it came from computes. What the comments no longer say is
 which service of the publisher's deployment does what; every rule, and every reason a line is
 the way it is, is still there.
-
-**One known difference from the specification.** `canonical-content.md` §2 cuts a body over
-1 048 576 characters by Unicode code points. The copied `vendor/canonical/base.mjs` cuts it with
-`substring()`, which counts UTF-16 code units. The two cut a different text only when the body
-is longer than the limit and carries a character outside the Basic Multilingual Plane before
-the cut; no vector in this package reaches that case. The copy has to stay the same program as
-the build it came from, so the difference is written down here rather than edited out of the
-copy, until the next version of this preview.
 
 Everything else here (`src/`, `bin/`, `test/`) is written for this example, from the
 specification documents it cites.

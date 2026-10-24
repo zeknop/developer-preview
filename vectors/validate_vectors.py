@@ -33,6 +33,56 @@ def compute_hash_from_json(json_str: str) -> str:
     return base64.b64encode(digest).decode("ascii")
 
 
+def body_from_recipe(parts) -> str:
+    """A body given as pieces instead of a literal: {"literal": s} and {"repeat": s,
+    "count": n}, the vocabulary the free-form lab vectors already use. A body over the §2
+    size limit cannot be inlined in a vector file, and a body_length alone cannot say WHICH
+    character sits in front of the cut."""
+    return "".join(
+        piece["literal"] if "literal" in piece else piece["repeat"] * piece["count"]
+        for piece in parts
+    )
+
+
+def canonical_json_from_recipe(vector, max_body_size: int):
+    """The canonical JSON of a recipe vector, or None when the vector is not one.
+
+    This script REHASHES what the vectors state; it is not a second implementation of §1
+    to §5. So the one rule applied here is the §2 body size limit — the first
+    `max_body_size` CODE POINTS — and the vector must be written so that nothing else of
+    §2 to §5 has any work to do. That is asserted below, never assumed: a recipe whose
+    pieces carry a line end, trailing white space, a BOM or a non-canonical address would
+    be refused here instead of being hashed against a rule this file does not know.
+    """
+    given = vector.get("input", {})
+    parts = given.get("body_parts")
+    if not parts:
+        return None
+    body = body_from_recipe(parts)
+    for forbidden in ("\r", "\n", "\ufeff"):
+        assert forbidden not in body, f"{vector['id']}: the recipe needs §2 normalisation"
+    assert body == body.strip() and "\t" not in body, (
+        f"{vector['id']}: the recipe needs §2 normalisation")
+    to_field = given["to"]
+    to_field = ", ".join(to_field) if isinstance(to_field, list) else to_field
+    for field in (given["from"], to_field, given["subject"]):
+        assert field == field.strip(), f"{vector['id']}: {field!r} needs canonicalisation"
+    assert given["from"] == given["from"].lower(), f"{vector['id']}: from needs lowercasing"
+    cut = body[:max_body_size]
+    stated = vector["expected"].get("truncated_body_length")
+    if stated is not None:
+        assert len(cut) == stated, (
+            f"{vector['id']}: the cut is {len(cut)} code points, the vector says {stated}")
+    obj = {
+        "from": given["from"],
+        "to": to_field,
+        "subject": given["subject"],
+        "body": cut,
+        "timestamp": given["timestamp"],
+    }
+    return json.dumps(obj, separators=(",", ":"), ensure_ascii=False)
+
+
 def validate_vectors(vectors_path=None, dump: bool = False) -> int:
     path = Path(vectors_path) if vectors_path else HERE / "vectors.json"
     if not path.is_file():
@@ -45,6 +95,7 @@ def validate_vectors(vectors_path=None, dump: bool = False) -> int:
     if not vectors:
         print(f"ERROR: {path} holds no vectors - nothing was validated")
         return 2
+    max_body_size = data.get("max_body_size") or 1024 * 1024
     passed = 0
     failed = 0
     skipped = 0
@@ -55,6 +106,11 @@ def validate_vectors(vectors_path=None, dump: bool = False) -> int:
 
         canonical_json = expected.get("canonical_json")
         content_hash = expected.get("content_hash")
+
+        if not canonical_json:
+            # A body too big to inline is given as a recipe; the canonical JSON is built
+            # from it here rather than stored (see canonical_json_from_recipe).
+            canonical_json = canonical_json_from_recipe(v, max_body_size)
 
         if not canonical_json or not content_hash:
             print(f"  SKIP: [{vid}] — no canonical_json or content_hash in expected")

@@ -1,7 +1,7 @@
 <!-- Developer Preview copy of the ZEKNOP Signed Email specification. -->
 **`CHANGELOG.md`** — the normative changes, version by version. Version the changes up to v1.4 (newest entry 2026-10-24).
 Publisher: Zeknod OÜ. Licence: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-Source digest (SHA-256 of the file this copy was made from): `f492cfda7f87ca1892fb4c002f0042e5abc7065d43c058bd78be53682b992107`.
+Source digest (SHA-256 of the file this copy was made from): `d60148293932e939bf92c7af0291f00346cb86e345f7ad3018ea9af250cfcfc0`.
 This copy differs from that file in this header and in the reference rewrites described in
 [README.md](README.md): a pointer to something a reader outside the publisher's repository
 cannot open becomes a pointer inside this package or is dropped. No normative sentence is
@@ -13,6 +13,53 @@ changed.
 
 Normative changes to the specification in this directory: `canonical-content.md`,
 `delivered-envelope.md` (from v1.4) and `signature-input.md` (from v1.4).
+
+## v1.4 — 2026-10-24 (beta.11): sentences the code does not say, and the JavaScript cut
+
+No rule of the specification changes and every existing vector gives the answer it gave. Two of
+the publisher's implementations now follow a rule they did not, and for those messages they
+compute a different value than before: the three JavaScript implementations cut a body by code
+points (§2), and the shared Python walker trims a MIME boundary with the §2 step 4 set (§9.2a) —
+and, by the same mechanism, a part's `Content-Transfer-Encoding`. (How a verifier reads a header
+field NAME that carries white space, which RFC 5322 does not allow, is not a rule of this
+specification; the publisher's verifier fails such a message closed.) Everything
+else here is a sentence that said more, or something else, than the rule the implementations and
+the vectors hold.
+
+**`canonical-content.md` §2 Body Size Limit, the implementations.** The entry below said the
+signer, the portal and the plugin still cut UTF-16 code units and were to follow later. They
+follow here: ONE cutting function, byte for byte the same text in all three, with the vector
+`e2e-004-body-cut-code-points` over it and a form of the differential harness that asks each
+implementation's own text-leaf entry point for the body it would hash. A message of that class
+signed BEFORE this release was signed over the code-unit body and does not verify against this
+rule; that is the class the entry below already described as answered two ways.
+
+**`canonical-content.md` §2 step 3** no longer says U+0085 is in the step 4 trim set. It is in
+NEITHER set: `String.prototype.trim()` does not remove it — Python's bare `str.strip()` does,
+which is why step 4 writes its set out — and step 3 does not end a line at it. The sentence
+contradicted the list in step 4 of the same document.
+
+**`canonical-content.md` §9.2a** says that white space in that section is the trim set of §2
+step 4, and point 6 says the boundary is trimmed with that set and no other. A reader that trims
+with its own language's white space reads a different container out of the same field, and then
+hashes a different message: measured over U+001F, U+0085 and U+FEFF — the code points where
+Python's white space differs from the set — in the new vectors `pm-021` to `pm-027`, with U+00A0
+as the control that is in both sets and must not move. §2 step 4's list of where the set is meant
+now names §9.2a beside §5 and §9.4.
+
+**`canonical-content.md` §8 Replay Model point 4** says what the relay's `/v1/verify` does: it
+MARKS the triple (identity, signature, message hash) with SETNX for 24 hours and does not spend
+the signature — a repeat of the same triple is verified cryptographically again and, when the
+signature holds and the identity is active, answered `valid: true` with
+`message: "Previously verified"`, and a FIRST question whose verdict comes out negative deletes
+the mark again (a repeat leaves it, which blocks nothing).
+The point said "single-use … preventing replay of the exact same verification tuple", which no
+build of the relay has done. The same list said four layers and had five.
+
+**`delivered-envelope.md` §6.1** says a text, and an HTML part, whose outer envelope is the
+not-verified envelope "does not recompute to a signature" where it said it "can never" — the
+same correction as §9.2 in the entry below: what is measured is that it does not, not that it
+could not.
 
 ## v1.4 — 2026-10-24: the text says what the implementations and the vectors already do
 
@@ -34,8 +81,9 @@ and it keeps U+FEFF). §5 and §9.4 trim with the same set.
 points; the constant's name once said bytes. An implementation that cuts UTF-16 code units
 differs only for a body over the limit that carries a character outside the Basic Multilingual
 Plane before the cut. The publisher's JavaScript implementations — the signer, the portal and
-the plugin — still cut code units and are to follow in a later release; until then a message of
-that kind they signed does not verify for a reader that follows this rule.
+the plugin — still cut code units at that release and are to follow in a later one; until then a
+message of that kind they signed does not verify for a reader that follows this rule. (They
+follow in beta.11 — the entry above.)
 
 **`canonical-content.md` §8 and §9.2** no longer say more than the construction does: §8 says
 which content the hash covers — the normalised fields, and the first 1,048,576 characters of

@@ -1,7 +1,7 @@
 <!-- Developer Preview copy of the ZEKNOP Signed Email specification. -->
 **`canonical-content.md`** — what is hashed. Version 1.4 (2026-09-23).
 Publisher: Zeknod OÜ. Licence: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-Source digest (SHA-256 of the file this copy was made from): `98d293f4fabf62036a2b1cf75d6826f5bf6018e270ee05052d4e5ca45593d6a3`.
+Source digest (SHA-256 of the file this copy was made from): `9841d3c929c2cbf51008d10e10e149f55c09e9ff616f1d699f593b25f22ae4b8`.
 This copy differs from that file in this header and in the reference rewrites described in
 [README.md](README.md): a pointer to something a reader outside the publisher's repository
 cannot open becomes a pointer inside this package or is dropped. No normative sentence is
@@ -208,10 +208,12 @@ MUST write the set out rather than lean on `$`:
 re.sub(r"[ \t]+(?=[\n\r\u2028\u2029]|\Z)", "", text)
 ```
 
-Note that U+0085, U+000B and U+000C are in the step 4 trim set (they are
-ECMAScript WhiteSpace or LineTerminator for `trim()`) but are **not** line ends
-for step 3: a space in front of one of them is content and stays. The two sets
-are deliberately different and neither may be derived from the other.
+Note that U+000B and U+000C are in the step 4 trim set (they are ECMAScript
+WhiteSpace for `trim()`) but are **not** line ends for step 3: a space in front
+of one of them is content and stays. U+0085 is in **neither** set: `trim()` does
+not remove it (Python's bare `str.strip()` does, which is why step 4 writes its
+set out) and step 3 does not end a line at it. The two sets are deliberately
+different and neither may be derived from the other.
 
 ### Step 4: Trim
 
@@ -239,7 +241,8 @@ TRIM_CHARS = (
 text.strip(TRIM_CHARS)
 ```
 
-The same set is meant wherever this document says a field is trimmed (§5, §9.4).
+The same set is meant wherever this document says a field is trimmed, or that white
+space is removed, and never the white space of the reading language (§5, §9.2a, §9.4).
 
 ### Preservation Rules
 
@@ -665,7 +668,7 @@ A ±30 second tolerance is allowed for future timestamps to accommodate clock dr
 
 ### Replay Model
 
-Inbound verification security rests on four layers, not timestamp expiry:
+Inbound verification security rests on five layers, not timestamp expiry:
 
 1. **Content hash binding** — the SHA-256 hash covers from+to+subject+body+timestamp, as §1
    to §5 normalise them; any alteration of that content invalidates the hash and the
@@ -675,14 +678,23 @@ Inbound verification security rests on four layers, not timestamp expiry:
    proxy enforces that the inbound `From` matches the signed identity.
 3. **Revocation** — a compromised signing key can be revoked via the relay API; all subsequent
    verification attempts return `valid=false`.
-4. **Relay single-use SETNX guard (non-proxy path)** — when an end-user plugin calls
-   `/v1/verify` directly, Redis SETNX marks `(uuid, sig_hash, content_hash)` as seen for 24h,
-   preventing replay of the exact same verification tuple. This guard is **intentionally skipped
-   on the proxy path** (`source=proxy` with authenticated `proxy_secret`): a single signed
-   message can legitimately reach multiple recipients behind the same proxy, and consuming the
-   token on the proxy path would prevent the end recipient from later verifying the same message
-   via their plugin. The proxy authenticates itself with a shared secret (HMAC comparison); an
-   unauthenticated `source=proxy` claim is treated as a normal (replay-checked) request.
+4. **Relay replay mark (non-proxy path)** — when an end-user plugin calls `/v1/verify`
+   directly, Redis SETNX marks the triple `(uuid, sig_hash, content_hash)` as seen for 24h.
+   The mark does **not spend the signature**: a repeat of the same triple is verified
+   cryptographically again and the identity is read again, so the verdict never comes out of
+   the mark, and when the signature holds and the identity is active the answer is
+   `valid: true` with `message: "Previously verified"`. A FIRST question whose verdict comes
+   out negative deletes the mark again, so a retry after a transient failure is not blocked; a
+   repeat leaves the mark where it is, which blocks nothing, because the verdict is recomputed
+   either way. What the mark
+   buys is therefore the record that the triple has been asked about before — a caller can tell
+   a repeat from a first question — and not a refusal; what refuses a replayed *message* is the
+   proxy's own guard, point 5. The mark is **intentionally not set on the proxy path**
+   (`source=proxy` with authenticated `proxy_secret`): a single signed message can legitimately
+   reach multiple recipients behind the same proxy, and with no mark from the proxy the end
+   recipient's own plugin asks a first question like any other. The proxy authenticates itself
+   with a shared secret (HMAC comparison); an unauthenticated `source=proxy` claim is treated as
+   a normal (marked) request.
 5. **Proxy durable replay guard (hard, Redis)** — decided 2026-08-05. The
    verification proxy enforces a durable Redis-backed guard in `handle_DATA`: per-message
    key `(uuid, sha256(signature), content_hash)` holding a SET of already-served envelope
@@ -754,7 +766,9 @@ signature never covered. The reading below is therefore the Haraka signer's
 signer of its own (§9.5) and has to hand Haraka's answer back.
 
 For a `multipart/*` part, the boundary is read from the RAW `Content-Type` field,
-unfolded (§2.2.3 of RFC 5322) and not otherwise decoded:
+unfolded (§2.2.3 of RFC 5322) and not otherwise decoded. **White space in this section
+is the trim set of §2 step 4** — the set the signer's `trim()` removes and its `\s`
+matches — and never the white space of the reading language:
 
 1. A **segment** is `attribute*N=`, `attribute*=` or `attribute*N*=`, where `attribute`
    is a run of RFC 2045 token characters and `N` a run of ASCII digits. There is NO
@@ -774,9 +788,15 @@ unfolded (§2.2.3 of RFC 5322) and not otherwise decoded:
    `boundary*0="a%41b"` is `aAb`.
 5. A **plain** `boundary=` parameter written in the same field **wins** over the
    segments, wherever in the field it stands.
-6. The boundary is the value of the first `boundary=` this leaves, with surrounding
-   white space removed. When it leaves none — or leaves an empty one — the container has
-   NO usable boundary and §9.2 applies: ONE opaque leaf over its raw body, fail-closed.
+6. The boundary is the value of the first `boundary=` this leaves, with leading and
+   trailing characters of the **trim set of §2 step 4** removed — that set and no other.
+   A reader that trims with its own language's white space reads a different container:
+   Python's bare `str.strip()` also removes U+001C–U+001F and U+0085 and leaves U+FEFF,
+   and Python's `\s` matches the same wider set, so a boundary written with one of those
+   code points splits for such a reader and does not split for the signer, or the other
+   way round (vectors `pm-021` to `pm-027`). When it leaves none — or leaves an empty one
+   — the container has NO usable boundary and §9.2 applies: ONE opaque leaf over its raw
+   body, fail-closed.
 
 Implementations: one shared module for the Shield and the milter, and one for the
 portal. Neither may fall back to its runtime's own parameter parser:

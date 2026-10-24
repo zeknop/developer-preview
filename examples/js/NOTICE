@@ -13,9 +13,11 @@ The two fingerprints of a message have exactly one right answer, so this example
 does not reimplement the way they are computed: the files under
 `vendor/canonical/` are a copy of the ZEKNOP reference implementation of the
 canonical content specification, taken from one fixed revision of it and
-carrying this licence header. Apart from that header and the substitutions
-recorded with the copy — each of them inside a comment, and none of them
-changing the program — nothing in those files was changed.
+carrying this licence header in place of the one the source file carries: the
+same licence and the same copyright holder, and in addition what the file is a
+copy of. Apart from that header and the substitutions recorded with the copy —
+each of them inside a comment, and none of them changing the program — nothing
+in those files was changed.
 
 The copied files:
 

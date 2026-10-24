@@ -25,14 +25,14 @@ VECTORS = HERE.parents[2] / "vectors"
 
 #: What each file is expected to ask, in the units CONFORMANCE.md §1 counts.
 EXPECTED_COUNTS = {
-    "vectors.json": 72,
+    "vectors.json": 73,
     "free-form-vectors.json": 53,
     "charset-vectors.json": 54,
-    "parts-manifest-vectors.json": 20,
+    "parts-manifest-vectors.json": 27,
     "signature-input-vectors.json": 10,
     "timestamp-vectors.json": 6,
     "delivered-envelope-vectors.json": 38,
-    "differential/cases.json": 10575,
+    "differential/cases.json": 10587,
 }
 
 
@@ -62,7 +62,7 @@ class Conformance(unittest.TestCase):
 
     def test_the_differential_is_the_seed_and_the_case_count_it_says(self):
         note = self.by_name["differential/cases.json"].note
-        self.assertIn("5329 cases", note)
+        self.assertIn("5341 cases", note)
         self.assertIn("seed 20260923", note)
 
     def test_the_report_carries_the_counts_the_digests_and_the_versions(self):
@@ -118,6 +118,7 @@ class Conformance(unittest.TestCase):
             carried,
             [
                 ("e2e-003-body-truncation", "truncated_body_length"),
+                ("e2e-004-body-cut-code-points", "truncated_body_length"),
                 ("parts-002b-html-joined", "must_differ_from"),
                 ("parts-005-order-swap", "must_differ_from"),
             ],

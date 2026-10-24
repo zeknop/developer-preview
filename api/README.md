@@ -166,6 +166,11 @@ What each of the codes means:
   production deployment usually is not;
 - **400** on `GET /v1/verify/{identity_uuid}`: what the path carries is not a uuid at all, so
   nothing was looked up. An identity this relay has no record of is the `404` below;
+- **404** on `POST /v1/sign`: this relay has no identity with a signing key under that uuid —
+  it was never registered here, or no signing key of this relay belongs to it. The key was
+  accepted, so it is not the `401` above, and it is not the `403` above either: an identity
+  this relay does know and will not sign for is that one. This is the one code the document
+  declares for the path without saying what it means;
 - **404** on `GET /v1/verify/{identity_uuid}` and `GET /v1/signature/{envelope_id}`: no record
   of that identity, or of that envelope id;
 - **404** and **429** on `POST /v1/activate`: a code this relay does not hold, a code already

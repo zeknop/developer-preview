@@ -98,6 +98,20 @@ function charsetLabel(encoding) {
   return label;
 }
 
+/**
+ * A body given as a RECIPE → the text it stands for.
+ *
+ * `{ literal: s }` and `{ repeat: s, count: n }` pieces, joined in order. A body over
+ * the §2 size limit is a megabyte, which neither `vectors.json` nor
+ * `differential/cases.json` writes out: `e2e-004` carries it as `input.body_parts` and a
+ * `cut` case of the differential as `parts`, in this one vocabulary.
+ */
+export function bodyFromRecipe(parts) {
+  return (parts || [])
+    .map((piece) => ('literal' in piece ? piece.literal : piece.repeat.repeat(piece.count)))
+    .join('');
+}
+
 /** One node of a `mime_tree` → its wire bytes, without any delimiter. */
 function renderNode(node, boundaryPrefix) {
   const contentType = node.content_type || 'text/plain';
@@ -202,14 +216,18 @@ export function renderVector(vector, { timestampHeader = true } = {}) {
     ]);
   }
 
-  // A single text/plain part: the body as given, or — for the one vector that
-  // describes a body too large to store — the characters it names.
+  // A single text/plain part: the body as given, or — for the two vectors that
+  // describe a body too large to store — the characters they name. `body_length` is
+  // that many `A`; `body_parts` is a recipe, which is how a vector says WHICH code
+  // point sits in front of the cut (a length alone cannot).
   const body =
     typeof input.body === 'string'
       ? input.body
-      : typeof input.body_length === 'number'
-        ? 'A'.repeat(input.body_length)
-        : '';
+      : Array.isArray(input.body_parts)
+        ? bodyFromRecipe(input.body_parts)
+        : typeof input.body_length === 'number'
+          ? 'A'.repeat(input.body_length)
+          : '';
   lines.push('Content-Type: text/plain; charset=utf-8');
   return concat([utf8(lines.join(CRLF) + CRLF + CRLF), utf8(body)]);
 }

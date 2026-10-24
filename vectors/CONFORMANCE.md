@@ -3,7 +3,7 @@ Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
           https://creativecommons.org/licenses/by/4.0/
 Publisher: Zeknod OÜ
 Part of: the ZEKNOP Signed Email specification, Developer Preview
-Date: 2026-10-23
+Date: 2026-10-24
 -->
 
 # How to show your implementation agrees
@@ -32,24 +32,24 @@ ZEKNOP conformance report
   specification    canonical-content.md 1.4, signature-input.md 1.4/1.5,
                    delivered-envelope.md 1.4
 
-  vectors.json                      72/72   (e2e-003 on the hash: no canonical JSON stored)
+  vectors.json                      73/73   (e2e-003 and e2e-004 on the hash: no canonical JSON stored)
   free-form-vectors.json            53/53
   charset-vectors.json              54/54   (40 text parts, 14 subjects)
-  parts-manifest-vectors.json       20/20
+  parts-manifest-vectors.json       27/27
   signature-input-vectors.json      10/10
   timestamp-vectors.json             6/6
   delivered-envelope-vectors.json   38/38   (4 build, 5 build_html, 21 strip, 8 strip_html)
-  differential/cases.json       10575/10575 (5329 cases, seed 20260923)
+  differential/cases.json       10587/10587 (5341 cases, seed 20260923)
 
   vector files as read, sha256:
     4636b194b9f2d1980fba75dcbf5242d4c45fa0974b402aa788724354fd9a88e5  charset-vectors.json
     906a1723cdde6cd3bb169182870d58d44adad98b932d708cd443b4e6a19b35a9  delivered-envelope-vectors.json
     6c0f9af9c08c2c0f1e0984e2d0ff41015efb6217849c41ece6c3b5fdfc1cee49  free-form-vectors.json
-    41a9b5dc2850a23681e639678c06a2ea225a2c155cc39a4aefcaeebb3e334bbe  parts-manifest-vectors.json
+    d961eda92fca6ca4587cb7b6c1042baaf94ad4197e80eca5befdbda5415e62b8  parts-manifest-vectors.json
     35f968e0011122e9e7a39a3661d7fe91b794248866c5f6e60592ee77b48734c2  signature-input-vectors.json
     025e4f3406d862cf02cd68c7007efefd64e85edfc8a69d5bd67d7fea28d73abf  timestamp-vectors.json
-    027e9a048c1a3dd0c8d20a370cca4d3933d317fdbe3483e2832c4b846b07f6a7  vectors.json
-    e4c1f8b48d2a7d6be23c34f0fc8cdaf66b1aab2908d7c4a84483d55ea1d4cefe  differential/cases.json
+    7da6baa7702f2356ca34197be3614ce3f050becbc7e7ba60b49c1e30113d4e5d  vectors.json
+    3cee4d2dce18239ebf1de0b270835fb0865405a17c58aee58bcfa2afd6115c20  differential/cases.json
 ```
 
 The digests above are the files as published with this preview. Print the digests of the
@@ -69,9 +69,9 @@ nothing else is needed to reproduce it.
 
 - **Input** `input`: `from`, `to`, `subject`, `timestamp`, and then whichever of `body`,
   `mime_tree`, `raw_headers`, `body_bytes_hex` + `body_encoding`, `subject_raw_mime`,
-  `cc`, `to_header`, `cc_header`, `raw_to_header`, `body_description`, `body_length` the
-  vector carries. The header list at the top of the file fixes the field order, the JSON
-  separators (`,` and `:`), the encoding and the maximum body size.
+  `cc`, `to_header`, `cc_header`, `raw_to_header`, `body_description`, `body_length`,
+  `body_parts` the vector carries. The header list at the top of the file fixes the field
+  order, the JSON separators (`,` and `:`), the encoding and the maximum body size.
 - **Which field is the input, where a vector carries two.** Several vectors state the same
   message twice, once as bytes or as the wire form and once as something already read. The
   **unread** one is the input, every time:
@@ -97,8 +97,9 @@ nothing else is needed to reproduce it.
 - **Output** `expected.canonical_json`: the canonical JSON as one string.
   `expected.content_hash`: SHA-256 of those bytes as UTF-8, base64. Some vectors also
   carry `canonical_body`, `canonical_subject`, `canonical_from`, `canonical_to`, `parts`
-  or `shape`, which are the intermediate results; two carry `must_differ_from`; one
-  carries `truncated_body_length`; and two carry `warning_logged`.
+  or `shape`, which are the intermediate results; two carry `must_differ_from`; two carry
+  `truncated_body_length`, one of them also `truncated_body_last_code_point`; and two
+  carry `warning_logged`.
 - **Compare** your canonical JSON string against `expected.canonical_json` byte for byte,
   and your hash against `expected.content_hash`. The intermediate fields are there to
   localise a mismatch; compare them when the hash differs.
@@ -106,21 +107,31 @@ nothing else is needed to reproduce it.
   `../spec/canonical-content.md` writes the trim set out — what `String.prototype.trim()`
   removes, and nothing else — and Python's bare `str.strip()` is not that set (it removes
   U+001C–U+001F and U+0085 as well, and leaves U+FEFF). Swap the
-  set for `str.strip()` in the Python example client and exactly these three of the 72
+  set for `str.strip()` in the Python example client and exactly these three of the 73
   come out different, along with 13 comparisons of `differential/cases.json`. If one of
   the three is your only mismatch, that is where to look.
 - **`warning_logged`** (`body-012`, `body-013`, both a UTF-16 byte order mark) is about
   our own readers saying something in a log, not about the bytes. Your implementation is
   not held to it. Leave it out of your counts, or the totals here and yours will not be
   the same number.
-- **`e2e-003-body-truncation`** is the one vector with no `body`: its input is
+- **`e2e-003-body-truncation` and `e2e-004-body-cut-code-points` are the two vectors with
+  no `body`**, because their bodies are over the 1 048 576-code-point maximum and a
+  megabyte does not belong in a vector file. `e2e-003` gives its body as a length:
   `body_length` characters `A` — 1 049 000 of them, which `body_description` also says in
-  words — over the 1 048 576-character maximum. Build the body from that, and the
-  `content_hash` and `truncated_body_length` are both reproducible and both worth
-  comparing. Only the **string** comparison has to be skipped: the file does not store
-  the megabyte of canonical JSON that hash was taken over. Report it as compared on the
-  hash. (`validate_vectors.py`, which recomputes hashes out of the stored canonical JSON
-  rather than out of the input, reports this vector as skipped for that same reason.)
+  words. `e2e-004` gives it as a RECIPE, `input.body_parts`: pieces of the form
+  `{"literal": "s"}` and `{"repeat": "s", "count": n}`, joined in order — 1 048 575 `A`,
+  then U+1F642, then 1 000 `B`. A length could not say WHICH code point sits in front of
+  the cut, and that is the whole question `e2e-004` asks: the cut counts code points, so
+  the hashed body ends in U+1F642 and not in half of its surrogate pair. (The vector's
+  `note` carries the hash a cut by UTF-16 code units gives, so a reader that gets that
+  value knows exactly what is wrong.) Build each body from what the vector gives, and the
+  `content_hash` and the `truncated_body_length` are both reproducible and both worth
+  comparing — the length in CODE POINTS, which is the unit §2 counts in. Only the
+  **string** comparison has to be skipped for both: the file does not store the megabyte
+  of canonical JSON the hash was taken over. Report them as compared on the hash.
+  (`validate_vectors.py` recomputes hashes out of the stored canonical JSON rather than
+  out of the input, so it reports `e2e-003` as skipped for that same reason; `e2e-004` it
+  builds from the recipe, applies the one §2 rule the vector is about, and compares.)
 
 ### `free-form-vectors.json` — the free text form (§2b)
 
@@ -157,10 +168,29 @@ nothing else is needed to reproduce it.
   finds, in order.
 - **Compare** both. `boundary` says whether you read the parameter the same way;
   `manifest` says whether that changed the message you saw.
-- **One thing these 20 do not decide: percent-decoding.** No `content_type` in this file
-  carries a `%`, so a reading that percent-decodes every continuation group and one that
-  percent-decodes only the extended form both pass all 20. §9.2a point 4 of
-  `../spec/canonical-content.md` is the rule, and it is the first: a parameter written in
+- **The last seven (`pm-021` to `pm-027`) are the trim vectors of this file.** §9.2a
+  reads a boundary parameter with the white space of §2 step 4 — the 25 code points
+  `String.prototype.trim()` removes, and no others. A reader that uses its own language's
+  white space instead reads a DIFFERENT container: Python's `\s` and `str.strip()` also
+  hold U+001C–U+001F and U+0085, and do not hold U+FEFF. These seven put such a character
+  where the parameter is written — quoted, before the `=`, inside a segment, and in the
+  extended form — and the answers say which way it was read: in `pm-021`, `pm-023` and
+  `pm-024` the character (U+001F, U+0085) is NOT white space to §2 step 4 and stays in
+  the boundary, which then matches no delimiter in the message, so the container is one
+  `opaque` leaf; `pm-022` writes it between the attribute and the `=`, where it makes the
+  parameter unreadable and the boundary is `""`, again one `opaque` leaf; in `pm-025` and
+  `pm-026` the character is U+FEFF, which IS in the set and comes off, so the walk finds
+  `plain` and `html`. `pm-027` is the control: U+00A0 is white space to both sets, so its
+  answer must come out the same whichever one a reader used — a reader that gets `pm-027`
+  right and the other six wrong has not read §9.2a.
+- **One thing these 27 do not decide: percent-decoding outside the extended form.** Four
+  `content_type` values here carry a `%` (`pm-024` to `pm-027`) and every one of them is
+  written in the extended form `boundary*=charset''value`, which §9.2a point 4
+  percent-decodes — so that half of the rule the file does hold. None carries a `%` in a
+  continuation group (`attribute*N=`) or in a plain parameter, so a reading that
+  percent-decodes every continuation group and one that percent-decodes only the extended
+  form both pass all 27. §9.2a point 4 of `../spec/canonical-content.md` is the rule, and
+  it is the first: a parameter written in
   segments — any group spelled `attribute*N=`, `attribute*N*=` or `attribute*=` — is
   percent-decoded after its segments are joined, and a parameter written without a `*` is
   not. Both example clients answer that way, and it takes one command to see it:
@@ -216,7 +246,7 @@ Four arrays, four questions. Report the four counts.
 A block quoted inside a reply is content, and stays. That is a rule, not an edge case:
 the `strip` vectors pin it, and so do the `html-envelope` cases of the differential.
 
-### `differential/cases.json` — the same questions, 5 329 seeded inputs
+### `differential/cases.json` — the same questions, 5 341 seeded inputs
 
 Read `cases`. Each case has an `id`, a `kind`, its input, and `expected`. Compare only
 the fields `expected` carries for that kind; a field it does not carry is not asked.
@@ -230,7 +260,8 @@ defines each form in one line.
 | `subject` | 72 | `value` | `strict`, `free` | §5, then §2 and §2b over the text that was read |
 | `html` | 66 | `text` | `free` | §2b over an HTML part |
 | `html-envelope` | 25 | `text` | `html`, `free` | `../spec/delivered-envelope.md` §6.1, then §2b over what is left |
-| `manifest` | 17 | `hex` | `manifest` | `../spec/canonical-content.md` §9.1 and §9.2a |
+| `manifest` | 24 | `hex` | `manifest` | `../spec/canonical-content.md` §9.1 and §9.2a |
+| `cut` | 5 | `parts` (a recipe), `value` | `cut` | §2 "Body Size Limit": the cut to the first 1 048 576 CODE POINTS |
 
 The forms:
 
@@ -244,6 +275,19 @@ The forms:
   a disagreement about where a container ends has to be readable as a structure. A reader
   that cannot read the message at all answers `error:<exception class name>`; if yours
   refuses differently, say so in the report rather than matching the string.
+- `cut` — SHA-256 of the body a text leaf would be hashed with, UTF-8, base64: the strict
+  form of the text, cut to the §2 size limit. Ask your own implementation through the
+  entry point it really hashes a text leaf with, so that what is compared is the body it
+  WOULD hash. The body is built from `parts`, a recipe — `{"literal": "s"}` and
+  `{"repeat": "s", "count": n}` pieces, joined in order — and `value` says the same recipe
+  in words, which is what a report of a mismatch can print. The limit is 1 048 576 CODE
+  POINTS: in a language whose strings are UTF-16, cutting by code units ends a body in
+  half of a surrogate pair, or cuts a body a code-point count leaves whole. Three of
+  these five cases answer differently when they are cut that way: the two with a
+  character outside the BMP in front of the cut, and the one whose body is under the
+  limit in code points and over it in code units. The other two — the ASCII control, and
+  the one whose astral character sits after the cut — answer the same either way, and
+  carry the same hash as each other.
 
 A `bytes` or `subject` case also carries `expected.decoded_text_sha256_b64`: SHA-256 of
 the text the bytes or the field were read to, before any canonicalisation. It is a
@@ -253,8 +297,8 @@ present for all 884 of those cases. The field is nullable: a reading that cannot
 written back as UTF-8 has no such hash, and there `strict` and `free` are the comparison.
 It is not counted in the totals below.
 
-**That is 10 575 comparisons** over the 5 329 cases: 5 221 `strict`, 5 312 `free`, 25
-`html` and 17 `manifest`. Report that number, and the number that matched.
+**That is 10 587 comparisons** over the 5 341 cases: 5 221 `strict`, 5 312 `free`, 25
+`html`, 24 `manifest` and 5 `cut`. Report that number, and the number that matched.
 
 ## 3. Run your implementation over the cases
 
@@ -262,7 +306,7 @@ The whole loop, in any language, is this:
 
 1. Read `vectors/differential/cases.json`.
 2. For each entry of `cases`, take its input by `kind` (`text`, or `hex` + `label`, or
-   `value`, or `hex` for a whole message).
+   `value`, or `hex` for a whole message, or `parts` for a body given as a recipe).
 3. Compute the forms `expected` carries for that kind.
 4. Compare, and keep the id and the field of every mismatch.
 
@@ -287,6 +331,11 @@ for c in cases:
         text = my_strip_delivered_block(c["text"])                     # §6.1
     elif c["kind"] == "html":
         text = c["text"]
+    elif c["kind"] == "cut":                                           # §2 size limit
+        body = "".join(p["literal"] if "literal" in p else p["repeat"] * p["count"]
+                       for p in c["parts"])
+        mine = {"cut": sha(my_text_leaf_body(body))}   # §2 form, cut to 1 048 576 code points
+        text = None
     else:                                                              # manifest
         mine = {"manifest": "|".join(my_leaves(bytes.fromhex(c["hex"])))}
         text = None
@@ -307,6 +356,6 @@ for c in cases:
 print(compared, "compared,", mismatches, "mismatches")
 ```
 
-With `compared` at 10 575 and `mismatches` at 0, your implementation answers every
+With `compared` at 10 587 and `mismatches` at 0, your implementation answers every
 question in this file the way the reference implementation does, for this seed. That is
 the claim the report makes, and it is the only one it makes.

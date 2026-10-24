@@ -23,14 +23,14 @@ const VECTORS = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..
 
 /** The comparisons each file asks for, as CONFORMANCE.md §1 counts them. */
 const EXPECTED = [
-  ['vectors.json', 72],
+  ['vectors.json', 73],
   ['free-form-vectors.json', 53],
   ['charset-vectors.json', 54],
-  ['parts-manifest-vectors.json', 20],
+  ['parts-manifest-vectors.json', 27],
   ['signature-input-vectors.json', 10],
   ['timestamp-vectors.json', 6],
   ['delivered-envelope-vectors.json', 38],
-  ['differential/cases.json', 10575],
+  ['differential/cases.json', 10587],
 ];
 
 /**
@@ -127,12 +127,12 @@ test('a byte-level body vector is rendered as bytes, not as its decoded text', a
   }
 });
 
-test('the one vector that cannot be compared as a string says so', async () => {
+test('the vectors that cannot be compared as a string say so', async () => {
   const { files } = await runConformance(VECTORS);
   const canonical = files.find((file) => file.name === 'vectors.json');
   assert.deepEqual(
     canonical.skipped.map((entry) => entry.id),
-    ['e2e-003-body-truncation'],
-    'exactly one vector is reported as partly skipped, and it is the megabyte body',
+    ['e2e-003-body-truncation', 'e2e-004-body-cut-code-points'],
+    'exactly the two megabyte bodies are reported as partly skipped, and nothing else',
   );
 });

@@ -22,7 +22,7 @@
   "max_body_size": 1048576,
   "generated_at": "2026-08-09",
   "generated_by": "Hand-written inputs, Python SHA-256, cross-validated with Node.js crypto",
-  "vector_count": 72,
+  "vector_count": 73,
   "categories": {
     "body_normalization": "body-001 through body-013 (BOM inc. UTF-16 LE/BE, line endings, whitespace, blank lines)",
     "recipient_parsing": "rcpt-001 through rcpt-013 (angle brackets, display names, case, order, quoted, comments, comma-in-display-name; rcpt-010+ add raw_headers wire forms: duplicate To instances, interleaved To/Cc, raw display-name, raw quoted local-part)",
@@ -30,7 +30,7 @@
     "address_edge_cases": "addr-001 through addr-004 (IDN, long local, subdomains, punycode)",
     "subject": "subj-001 through subj-007 (whitespace trim, empty, internal whitespace, RFC 2047 UTF-8 B, UTF-8 Q, adjacent encoded-words, duplicate Subject instances)",
     "from_selection": "from-001 through from-002 (duplicate From instances, multi-mailbox From: first instance, first mailbox)",
-    "end_to_end": "e2e-001 through e2e-003 (full pipeline, minimal, truncation)",
+    "end_to_end": "e2e-001 through e2e-004 (full pipeline, minimal, truncation, and the cut by code points with U+1F642 before it — body given as a recipe)",
     "parts_manifest": "parts-001 through parts-008 + shape-a-001 (v1.3 §9: document-order manifest, container-vs-leaf, rfc822 opaque, kind classification, n-omission, Shape A anchor). Replaces retired v1.2 attach-*/html-*/inline-*/mixed-* vectors.",
     "declared_charset": "shape-a-002 through shape-a-007 + parts-009 (§2 text read through the declared charset: ISO-8859-2, windows-1250 and ISO-8859-1, each 8bit and quoted-printable; the leaf carries the exact wire payload in payload_base64 and the text it reads as in text)",
     "declared_charset_every_high_byte": "shape-a-008 through shape-a-012 + parts-010 (§2 a legacy single-byte charset is read the way the recipient's client reads it, WHATWG Encoding Standard: every byte 0x80-0xFF under iso-8859-1, latin1 and us-ascii (windows-1252), windows-1250 (its undefined bytes read as U+0081, U+0083, U+0088, U+0090, U+0098) and iso-8859-2; the index data is the single-byte indexes of the WHATWG Encoding Standard)",
@@ -756,6 +756,38 @@
         "truncated_body_length": 1048576,
         "content_hash": "hCS4SAc5XPU1RWQn69pA4a2hKmgVqKAFwF5cKYrqTXM=",
         "note": "Hash computed with body truncated to 1,048,576 chars of A"
+      }
+    },
+    {
+      "id": "e2e-004-body-cut-code-points",
+      "description": "A body over the limit whose character before the cut is outside the BMP: the cut of §2 \"Body Size Limit\" counts CODE POINTS, so the last code point of the hashed body is U+1F642 and not half of its surrogate pair. The body is given as a RECIPE (body_parts: {literal} and {repeat, count} pieces, the vocabulary of the free-form lab vectors) because a 1 MiB literal does not belong in a vector file.",
+      "input": {
+        "from": "sender@example.com",
+        "to": [
+          "user@example.com"
+        ],
+        "subject": "Large",
+        "body_description": "1,048,575 x A, then U+1F642, then 1,000 x B",
+        "body_parts": [
+          {
+            "repeat": "A",
+            "count": 1048575
+          },
+          {
+            "literal": "🙂"
+          },
+          {
+            "repeat": "B",
+            "count": 1000
+          }
+        ],
+        "timestamp": "2026-01-01T00:00:00.000Z"
+      },
+      "expected": {
+        "truncated_body_length": 1048576,
+        "truncated_body_last_code_point": "U+1F642",
+        "content_hash": "G68KXKSdlXXErON45k1rh1X+HTSy/wh83f+5p6DcLpo=",
+        "note": "Hash computed with the body cut to 1,048,576 CODE POINTS, so it ends in U+1F642. A cut by UTF-16 code units — what the three JavaScript implementations did until v1.4.0-beta.11 — ends in the lone high surrogate U+D83D and gives SZZbSt9prFabgploCc76gKAbSsVjFqPCRO7j5rSe9s0=, which is the value this vector exists to keep out."
       }
     },
     {
