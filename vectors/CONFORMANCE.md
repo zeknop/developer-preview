@@ -3,7 +3,7 @@ Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
           https://creativecommons.org/licenses/by/4.0/
 Publisher: Zeknod OÜ
 Part of: the ZEKNOP Signed Email specification, Developer Preview
-Date: 2026-10-24
+Date: 2026-10-31
 -->
 
 # How to show your implementation agrees
@@ -28,7 +28,7 @@ one mismatch is reported as a mismatch, not rounded away.
 ```
 ZEKNOP conformance report
   implementation   my-verifier 0.3.0 (Rust 1.83)
-  date             2026-11-04
+  date             YYYY-MM-DD
   specification    canonical-content.md 1.4, signature-input.md 1.4/1.5,
                    delivered-envelope.md 1.4
 
@@ -45,11 +45,12 @@ ZEKNOP conformance report
     4636b194b9f2d1980fba75dcbf5242d4c45fa0974b402aa788724354fd9a88e5  charset-vectors.json
     906a1723cdde6cd3bb169182870d58d44adad98b932d708cd443b4e6a19b35a9  delivered-envelope-vectors.json
     6c0f9af9c08c2c0f1e0984e2d0ff41015efb6217849c41ece6c3b5fdfc1cee49  free-form-vectors.json
-    d961eda92fca6ca4587cb7b6c1042baaf94ad4197e80eca5befdbda5415e62b8  parts-manifest-vectors.json
-    35f968e0011122e9e7a39a3661d7fe91b794248866c5f6e60592ee77b48734c2  signature-input-vectors.json
+    77ef9f786340ded0ca5c7a697310708839826b986e10234bb66ebbbfba004ba1  parts-manifest-vectors.json
+    20d0dbe229d8e675631cd4a60becf377fefa2caadec46797f4ac5b672d4b4c9c  signature-input-vectors.json
     025e4f3406d862cf02cd68c7007efefd64e85edfc8a69d5bd67d7fea28d73abf  timestamp-vectors.json
     7da6baa7702f2356ca34197be3614ce3f050becbc7e7ba60b49c1e30113d4e5d  vectors.json
     3cee4d2dce18239ebf1de0b270835fb0865405a17c58aee58bcfa2afd6115c20  differential/cases.json
+    059f236b7e5ed4ebb9eb709ab372dd931d7c051cfd799c5c58efae3e32a9a84b  signed-message/signed-message.json
 ```
 
 The digests above are the files as published with this preview. Print the digests of the
@@ -86,6 +87,9 @@ nothing else is needed to reproduce it.
   §2 step 0, §5 or the header parsing at all — which is the one thing they are for. The
   read field is also not a stage you can feed a pipeline from: in `shape-a-002` the `text`
   already has its line ends normalised (§2 step 2), in `shape-a-010` it does not.
+  `body_encoding` is the generator's codec name, not a charset label: read `utf-16-le` as the
+  label `utf-16le` and `utf-16-be` as `utf-16be`. Taken as a label through §2 step 0, either
+  name is one no encoding has, and the bytes would be read as UTF-8.
 - **`mime_tree`**, per node: `content_type`; `charset` and `transfer_encoding` (the labels
   of §2 step 0 and of the transfer encoding to undo first); `payload_base64` (the part's
   bytes) or `content_base64` for a non-text leaf; `text` (see above); `children` (an
@@ -245,6 +249,20 @@ Four arrays, four questions. Report the four counts.
 
 A block quoted inside a reply is content, and stays. That is a rule, not an edge case:
 the `strip` vectors pin it, and so do the `html-envelope` cases of the differential.
+
+### `signed-message/` — one delivered message, end to end
+
+- **Input** `signed-message.eml`, the message as a recipient's server stores it, and
+  `identity_answer.keys` of `signed-message.json`, the identity's key in the shape
+  `GET /v1/verify/{identity_uuid}` answers it. **Output** the strict and the free hash, the
+  signature input of `../spec/signature-input.md` §2, and whether the Ed25519 signature of
+  `X-ZEKNOP-Signature` holds over that input for that key. **Compare** with `expected`:
+  `strict_hash_b64`, `free_hash_b64`, `signature_input_hex`, `signature_holds`.
+- `X-ZEKNOP-Relay` names the relay that signed. The publisher's signers write it; nothing in
+  checking the signature reads it.
+- **Not in the totals of §1.** The two example clients cannot check an Ed25519 signature with
+  the standard library alone, so they do not run this file. Report it on a line of its own,
+  `signed-message/  1/1`, if your implementation does.
 
 ### `differential/cases.json` — the same questions, 5 341 seeded inputs
 

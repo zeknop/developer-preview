@@ -35,7 +35,7 @@ four states it is: the identity is not active (`UUID is suspended, cannot sign`,
 status itself in the text), the identity has been revoked (`UUID has been revoked`), the `From`
 address of the request is not one that identity may send as (`Sender address does not match
 registered identity`), or the deployment's own policy does not let that identity sign, which a
-domain identity meets on a deployment that keeps domain signing for a paid plan. The route does
+domain identity meets on a deployment that lets only some identities sign for a domain. The route does
 not *declare* `403` in `openapi-public.json`; it answers it, which is why the README carries a
 table of the codes the document is thinner than the relay about.
 
@@ -233,7 +233,7 @@ means the relay is older than this.
 | --- | --- | --- |
 | `signature-mismatch` | the signature does not hold for an identity this relay HAS | the red "changed" — and this value alone |
 | `unknown-identity` | this relay has no record of that identity, so nothing was checked against anything | `Not verified: unknown identity`, amber/grey |
-| `identity-not-active` | the signature holds; the identity is revoked or not active | not red: the bytes are the bytes that were signed |
+| `identity-not-active` | the signature holds; the identity is revoked or not active | not red: the signed content is the content that was signed |
 | `unsupported-version` | the version the request names is not one this build can construct | `Not verified: unsupported ZEKNOP version` |
 | `unsupported-algorithm` | the algorithm the message names has no implementation here | `Not verified: unsupported signature algorithm` |
 | `algorithm-not-in-record` | the identity record does not say it signs with that algorithm | not green; see `../spec/signature-input.md` §5 |
@@ -292,7 +292,8 @@ normatively in `../spec/signature-input.md` §10; the listing below is described
 
 ### `GET /v1/forward-checks/{envelope_id}` — new
 
-Public, rate limited: every forward received for that envelope id in the last 7 days, each
+Public, rate limited: every forward received for that envelope id in the last 7 days (the
+listing window, a deployment setting; the records are kept longer, see Retention below), each
 with the time it arrived, its verdict and its kind, plus the identity. Never a hash, never any
 text, and never the forwarding address or its hash. A copy somebody else pushed in is one more
 row, never a verdict that overwrites another. An unknown code is an empty list with a `reason`:
@@ -373,8 +374,8 @@ same protection 1.4 gave a client written against 1.3, for the same reason.
 **A client written against 1.3** keeps working unchanged for every message signed before the
 cutover. For a message signed after it, that client receives `409` instead of
 `{"valid": false}`. Nothing it can send turns the `409` into a false green, and nothing turns a
-message somebody really changed into a `409`: the refusal is matched on the hash as well as on
-the signature, so a changed message keeps the old answer.
+message whose signed content was changed into a `409`: the refusal is matched on the hash as well
+as on the signature, so such a message keeps the old answer.
 
 ### `POST /v1/sign` — the new fields `version`, `alg`, `free_hash`
 

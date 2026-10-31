@@ -3,7 +3,7 @@ Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
           https://creativecommons.org/licenses/by/4.0/
 Publisher: Zeknod OÜ
 Part of: the ZEKNOP Signed Email specification, Developer Preview
-Date: 2026-10-24
+Date: 2026-10-31
 -->
 
 # ZEKNOP test vectors
@@ -30,6 +30,7 @@ newer and the standard library alone.
 | `timestamp-vectors.json` | 6 | The timestamp decisions — `../spec/canonical-content.md` §8 |
 | `delivered-envelope-vectors.json` | 4 build + 5 build_html + 21 strip + 8 strip_html | Writing and removing the delivered block — `../spec/delivered-envelope.md` §3, §6, §7 |
 | `differential/cases.json` | 5 341 | The same questions over seeded inputs, with reference answers — see `differential/` below |
+| `signed-message/` | 1 message | One delivered message signed end to end — see `signed-message/` below |
 
 Beside the JSON there is a script per file:
 
@@ -105,6 +106,24 @@ Two notes on how these files were cut for publication:
   edited here for readers outside it. No implementation, validator or generator reads
   any of those fields; `CONFORMANCE.md` lists, per file, the fields that are compared,
   and none of them is one of these.
+
+## signed-message/
+
+One delivered message signed end to end, for the path the files above test only in pieces: the
+`X-ZEKNOP-*` fields of a whole message, both hashes recomputed from it, the signature input of
+`../spec/signature-input.md` §2, and an Ed25519 signature that holds over it.
+`signed-message.eml` is the message as a recipient's server stores it; `signed-message.json`
+carries the identity's key in the shape `GET /v1/verify/{identity_uuid}` answers it
+(`../api/README.md`, "The keys of an identity") and the values a verifier arrives at. The
+message also carries `X-ZEKNOP-Relay`, the name of the relay that signed, which the publisher's
+signers write and nothing in checking the signature reads.
+
+Unlike the files above, this one is not written out by hand: the Python example client of this
+package built it, the way its `sign` command does, and the publisher signed it with a key whose
+seed is in the JSON. That key is the key of no deployment, and a message signed with it proves
+nothing about anybody. A verifier that reaches `signature_holds: true` has walked the whole
+path; change one character of the body and the strict hash changes, and the signature no longer
+holds.
 
 ## differential/
 

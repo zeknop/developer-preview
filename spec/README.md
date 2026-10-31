@@ -9,17 +9,20 @@ security guarantee.**
 
 # The specification
 
-Four documents, and between them they say everything an implementation of signing and
-verifying needs: what is hashed, what the signature is made over, what a delivered message
-looks like, and what changed when. One section is left out — how a deployment checks a copy
+Four documents: what is hashed, what the signature is made over, what a delivered message
+looks like, and what changed when. An implementation of signing and verifying is written from
+them and checked against the vectors. One section is left out — how a deployment checks a copy
 forwarded by an ordinary mail client; see "What is left out" below.
 
 | Document | Version | Normative for |
 |---|---|---|
 | [canonical-content.md](canonical-content.md) | 1.4 | **what is hashed** — reading the bytes, the strict form, the free text form, the parts manifest |
 | [signature-input.md](signature-input.md) | 1.4 and 1.5 | **what is signed** — the signature input, the algorithm registry, the identity record, the API |
-| [delivered-envelope.md](delivered-envelope.md) | 1.4 | **what is delivered** — the visible block a signer writes, and how a verifier takes it off |
+| [delivered-envelope.md](delivered-envelope.md) | 1.4; §3.4 holds from relay contract 1.8 | **what is delivered** — the visible block a signer writes, and how a verifier takes it off |
 | [CHANGELOG.md](CHANGELOG.md) | up to 1.4 | the normative changes, version by version |
+
+The tables `canonical-content.md` pins — the index data of §2 step 0 and the Unicode and HTML
+tables of §2b.4 — are in [`tables/`](tables/README.md), as data.
 
 **When two of them disagree, the one that is normative for the subject wins:**
 `canonical-content.md` for what is hashed, `signature-input.md` for what is signed,
@@ -94,7 +97,7 @@ above. Vectors: `../vectors/delivered-envelope-vectors.json`.
 `GET /v1/verify/{uuid}` publishes that identity's keys with their validity, which is what lets
 you check a signature yourself instead of taking the answer for it.
 
-A verifier that recomputes a fingerprint which does not match says the message was changed, so
+A verifier that recomputes a fingerprint which does not match says the signed content was changed, so
 the two orders that matter are worth repeating: the envelope comes off before the content is
 read, and the version is read before the content is hashed.
 
@@ -137,7 +140,7 @@ sentence, says what it rests on, and says what in this package you can rerun ins
 marked as the publisher's, it is normative for nothing, and it never adds a rule the document
 does not make. A sentence that was ambiguous, absolute about security, or at odds with another
 part of a document is not a note's business: it was corrected in the specification itself
-before these copies were made (see the two entries of 2026-10-24 in `CHANGELOG.md`).
+before these copies were made (see the entries of 2026-10-24 and of beta.12 in `CHANGELOG.md`).
 
 **What is left out.** `signature-input.md` §9 describes an operator-side service that checks a
 copy forwarded by an ordinary mail client, and its trust model. It is not part of this preview.

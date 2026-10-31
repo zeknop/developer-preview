@@ -67,14 +67,14 @@ that verdict means.
 **The message does not leave the process.** What a relay is asked is the identity, the
 signature, the two fingerprints and the time — never the message itself. `--offline` sends
 nothing at all; what it establishes is smaller and it says so in its own output: a
-fingerprint that agrees with the header means the delivered content is the content the header
-names, and nothing about who signed it. A fingerprint that disagrees means the content
-changed, and that much needs nobody.
+fingerprint that agrees with the header means the signed content is the content the header
+names, and nothing about who signed it. A fingerprint that disagrees means the signed
+content changed, and that much needs nobody.
 
 **Not every negative answer is about the message.** `signature-mismatch` is the one that says
-the content changed. `unknown-identity` says the relay has no record of that identity, so
+the signed content changed. `unknown-identity` says the relay has no record of that identity, so
 nothing was checked against anything; `identity-not-active` says the signature holds and the
-identity is not active — the bytes are the bytes that were signed. A `409` is a refusal and
+identity is not active — the signed content is the content that was signed. A `409` is a refusal and
 not a verdict: the signature was made under a version this client did not say it can build.
 No connection, a timeout, a `5xx` and a `429` are outages, and this client exits 3 for them
 rather than reporting anything about the message. The whole table is in
@@ -101,8 +101,8 @@ node bin/sign.mjs composed.eml \
     --out signed.eml
 ```
 
-The identity and its key come from a relay you can register on — a sandbox, or your own
-deployment ([`../../sandbox/`](../../sandbox/)). Put the key in the environment rather than in
+The identity and its key come from a relay you can register on — your own deployment, or a
+sandbox once one is published ([`../../sandbox/`](../../sandbox/) says what one is). Put the key in the environment rather than in
 a shell history; this example never writes it anywhere.
 
 The order of the four steps is the specification's and not a convenience:
@@ -222,8 +222,8 @@ free text form §2b, the parts manifest §9),
 [`signature-input.md`](../../spec/signature-input.md) (what the signature is made over),
 [`delivered-envelope.md`](../../spec/delivered-envelope.md) (what the reader sees, and how a
 verifier takes it off again). The HTTP contract is in [`../../api/`](../../api/), the vectors
-in [`../../vectors/`](../../vectors/), and a relay to try it against in
-[`../../sandbox/`](../../sandbox/).
+in [`../../vectors/`](../../vectors/), and what a sandbox relay is in
+[`../../sandbox/`](../../sandbox/); none is published with this preview.
 
 The example addresses here are `example.org` and `example.com`, the only address literal is
 the loopback one the test relay stand-in binds (`127.0.0.1`), and there are no keys anywhere.

@@ -1,7 +1,7 @@
 <!-- Developer Preview copy of the ZEKNOP Signed Email specification. -->
 **`signature-input.md`** — what is signed. Version 1.4 and 1.5 (the source header carries no date).
 Publisher: Zeknod OÜ. Licence: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-Source digest (SHA-256 of the file this copy was made from): `a6d813c7fb298f36bd86346371013a2ff33aa995dabd7a6a0df222f4493e7136`.
+Source digest (SHA-256 of the file this copy was made from): `0099806af5699c6c219363a8cb3c6120a9e87c25d64210be0cd1acd30fdceadc`.
 This copy differs from that file in this header, in the one section it leaves out (§9, with a
 note where it stood), and in the reference rewrites described in [README.md](README.md): a
 pointer to something a reader outside the publisher's repository cannot open becomes a pointer
@@ -37,7 +37,7 @@ bytes, with nothing around them. Nothing in the message said which algorithm pro
 the signature, so the algorithm could not be part of what the signature protects, and a
 later change of algorithm would have needed a cutover with no way to tell the two kinds
 of message apart. v1.4 puts the version and the algorithm identifier **under** the
-signature, while there is no customer mail signed yet and the change costs nothing.
+signature.
 
 ---
 
@@ -111,7 +111,7 @@ Vectors: `../vectors/signature-input-vectors.json`, assembled from this section 
 | `ml-dsa-44` | reserved | taken, nothing signs with it |
 | `ml-dsa-65` | reserved | taken, nothing signs with it |
 | `slh-dsa-sha2-128s` | reserved | taken, nothing signs with it |
-| `ed25519+ml-dsa-65` | reserved | the composite name for the pair planned for H1 2027 |
+| `ed25519+ml-dsa-65` | reserved | taken, nothing signs with it |
 
 The value is the field body with the whitespace around it removed — what unfolding leaves,
 and what every reader of these headers sees — and it is then compared **byte for byte and
@@ -335,7 +335,7 @@ algorithm it used alongside the signature and the envelope id.
 
 `POST /v1/sign-domain` — the same, for a milter.
 
-`attachments` is optional and is sent only when the message carries at least one attachment. Each entry has `hash` (SHA-256 of the raw bytes, standard base64), `size`, `mime` and `filename`. Since 1.3.2 the `filename` field carries a hash of the name, not the name: the UTF-8 bytes of the name after trimming, the fallback `unnamed` for an empty name, and the client's lower-casing — no Unicode normalisation, so the NFC and NFD forms of one name give two different hashes — hashed with SHA-256 and written as 64 lowercase hex digits (an optional `sha256:` prefix is accepted). The relay accepts only `^(sha256:)?[0-9a-f]{64}$` on `/v1/sign` and `/v1/sign-domain` and answers 422 to anything else. The reason is the one §7 gives: a file name is content about the message. The `n` field of the signed content manifest (canonical-content.md §9.4) is not affected.
+`attachments` is optional and is sent only when the message carries at least one attachment. Each entry has `hash` (SHA-256 of the raw bytes, standard base64), `size`, `mime` and `filename`. Since v1.4.0-beta.10 the `filename` field carries a hash of the name, not the name: the UTF-8 bytes of the name after trimming, the fallback `unnamed` for an empty name, and the client's lower-casing — no Unicode normalisation, so the NFC and NFD forms of one name give two different hashes — hashed with SHA-256 and written as 64 lowercase hex digits (an optional `sha256:` prefix is accepted). The relay accepts only `^(sha256:)?[0-9a-f]{64}$` on `/v1/sign` and `/v1/sign-domain` and answers 422 to anything else. The reason is the one §7 gives: a file name is content about the message. The `n` field of the signed content manifest (canonical-content.md §9.4) is not affected.
 
 `POST /v1/verify` — the verifier sends `version`, `alg`, `message_hash` (strict) and
 `free_hash`; the relay rebuilds the same input, checks the algorithm against the identity
@@ -438,8 +438,8 @@ the red "changed" — a sound message reported as changed, and, under a customer
 `on_fail: reject`, thrown away, for no reason but that this relay had never been told who the
 sender is. Decided 3 October 2026.
 
-An identity that is revoked or not active is deliberately NOT red either: the bytes are
-exactly the bytes that were signed, so nothing about the message was changed. What a reader
+An identity that is revoked or not active is deliberately NOT red either: the signed content
+is the content that was signed, so nothing the signature covers was changed. What a reader
 says about the sender is its own business; what it may not say is "this message was changed".
 
 **The red verdict has one source:** `valid: false` for an identity the relay HAS, with
@@ -482,6 +482,11 @@ Each state is one row and one row only, and the reader's sentence is fixed: a cu
 have a rule on it, so the same words appear in `X-ZEKNOP-Content-Verified-Details`, in the
 customer's policy tag, on the portal and in a deployment's checking service for forwarded
 copies (§9, which is not part of this preview).
+The `pass` row gives the words the Shield writes at this release. They say "unchanged" without
+a qualifier, and the word means the signed content (`canonical-content.md` §1) and nothing
+else. The portal's green title says it in full: `Sent from mailbox <address>, signed content
+unchanged` / `Sent from domain <domain>, signed content unchanged` (`delivered-envelope.md` §8).
+The checking service answers a different question in its own words.
 
 **Why a malformed block is two rows.** A block that is not the right shape is the verifier's
 own finding, made before anyone is asked (above), so by itself it says nothing about who sent

@@ -8,8 +8,9 @@ Contract version: **1.8**.
 
 `openapi-public.json` beside this file is the machine-readable shape of the paths listed
 below: their parameters, their bodies, their answers and their status codes. It is generated
-from the relay's own schema and filtered to those paths — it is not written by hand, and it is
-not edited by hand. This file carries what a schema cannot state: what an answer means, what a
+from the relay's own schema and filtered to those paths: the shape is the schema's, and every
+description in it is the publisher's public text, which the generator sets in place of the
+server's own wording. It is not edited by hand. This file carries what a schema cannot state: what an answer means, what a
 caller may do with it, and which of the relay's answers are statements about a message rather
 than about the relay. `API-CHANGELOG.md` says what changed for a caller, and when.
 
@@ -76,13 +77,19 @@ own infrastructure. A third-party caller leaves both unset.
 
 **Which answer is about the message.** `valid: false` carries `reason`, one word for which
 kind of no it is. `signature-mismatch` is the only value that says something about the
-message, and the only one a reader may show as "this message was changed". `unknown-identity`
+signed content, and the only one a reader may show as "the signed content was changed". `unknown-identity`
 says this relay has no record of that identity, so nothing was checked against anything;
 `identity-not-active` says the signature holds and the identity is revoked or not active — the
-bytes are the bytes that were signed. On a negative answer **of `POST /v1/verify`** the
+signed content is the content that was signed. On a negative answer **of `POST /v1/verify`** the
 absence of `reason` means the relay is older than contract 1.8. It is never set by
 `GET /v1/verify/{identity_uuid}`, which checks no signature: there `valid: false` says only
 that the identity is not active, and says nothing about any message.
+
+**The keys of an identity.** `GET /v1/verify/{identity_uuid}` lists them in `keys`, oldest
+first. Each has `algorithm`, `public_key` — the raw public key in standard base64 with
+padding, for `ed25519` 32 bytes and so 44 characters — and `valid_from` and `valid_to`, ISO
+8601 times, `valid_to` `null` while the key is current. `algorithms` lists the algorithms of
+those keys.
 
 **Which answers are an outage and which are not.** A `400`, `404`, `409` or `422` is a
 deterministic refusal of the question: the relay answered, and it will answer the same way
@@ -159,8 +166,8 @@ What each of the codes means:
 - **403** on `POST /v1/sign`: the key is good and the relay will still not sign. Either the
   identity is not active — suspended, or revoked — or the `From` address of the request is not
   one that identity may send as, or the deployment's own policy does not let that identity
-  sign, which a domain identity meets on a deployment that reserves domain signing for a paid
-  plan. The `detail` of the answer says which of them it is;
+  sign, which a domain identity meets on a deployment that lets only some identities sign for
+  a domain. The `detail` of the answer says which of them it is;
 - **403** on `POST /v1/register` and `POST /v1/register/mailbox`: the deployment keeps
   registration to invited callers and this caller is not one. A sandbox is usually open; a
   production deployment usually is not;
@@ -217,7 +224,7 @@ say it can build — the field `understands` is where a caller says that — the
 with a detail naming the version the record holds. It is a refusal and not a verdict, because
 a verdict is shown to a person as "this message is bad", and the message is not bad: the
 verifier is older than it. The match is on the hash as well as on the signature, so a message
-somebody really changed keeps its old answer.
+whose signed content was changed keeps its old answer.
 
 ## The verification portal
 

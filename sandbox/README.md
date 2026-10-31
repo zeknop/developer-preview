@@ -3,7 +3,7 @@ Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
           https://creativecommons.org/licenses/by/4.0/
 Publisher: Zeknod OÜ
 Part of: the ZEKNOP Signed Email specification, Developer Preview
-Date: 2026-10-23
+Date: 2026-10-31
 -->
 
 # The ZEKNOP sandbox
@@ -17,12 +17,12 @@ A sandbox is a relay you may sign with and check against without registering any
 **the same relay** as any other, started with one setting turned on: it serves the same
 HTTP contract, computes the same signature input, and produces envelopes that satisfy the same
 specification. Nothing in this package describes a special protocol for sandboxes, because
-there is not one. Until the code of that setting is part of a production release, a sandbox
-runs a build that carries it, and is the only deployment that does.
+there is not one. A sandbox runs a build that carries the code of that setting; no other
+deployment does.
 
-Address of the public sandbox: **sandbox follows.** Until it is announced, everything below is
-how the sandbox behaves and how to recognise one; the parts of this package you can use today
-without any relay at all are the test vectors and the differential cases.
+Address of the public sandbox: **none is published in this preview.** Everything below is how
+a sandbox behaves and how to recognise one; the parts of this package you can use without any
+relay at all are the test vectors and the differential cases.
 
 ---
 
@@ -129,7 +129,7 @@ This is the question worth being exact about, because getting it wrong once in a
 interface teaches a person the wrong thing.
 
 Take a message signed by a sandbox and check it against a different relay — the production
-one, or your own. The signature is intact and the content is untouched, but the relay you
+one, or your own. The signature is intact and the signed content is as it was signed, but the relay you
 asked has never heard of that identity. What you get back from `POST /v1/verify` is:
 
 ```json
@@ -138,9 +138,9 @@ asked has never heard of that identity. What you get back from `POST /v1/verify`
 
 and `GET /v1/verify/{identity_uuid}` for that identity answers `404`.
 
-**That is "I do not know this identity", and it is not "this message was changed."** The two
+**That is "I do not know this identity", and it is not "the signed content was changed."** The two
 are different facts about different things — one is about the relay you asked, the other is
-about the message — and `reason` is the field that tells them apart. A client that reads only
+about the signed content — and `reason` is the field that tells them apart. A client that reads only
 `valid` cannot distinguish them and will report the message as failing verification, which is
 exactly the confusion to avoid: read `reason`, and say *not verified: unknown identity*
 rather than anything about the content. On the mail path, a deployment's own checking service
@@ -233,7 +233,7 @@ The shared identity cannot be **revoked or erased** through the API: on a sandbo
 that would do it answer `403` for that one identity, because its key is published and one
 request would otherwise end the sandbox for everybody. And every start-up repairs a shared
 identity that has been damaged some other way — a status that is not active, a revocation
-left behind, a plan it cannot sign on, a key that no longer works — rather than leaving a
+left behind, a deployment policy it cannot sign under, a key that no longer works — rather than leaving a
 sandbox that answers every question and signs nothing. Repairing a key that no longer works
 means issuing a new one: the start-up log says so, and the new key has to be published in place
 of the old.

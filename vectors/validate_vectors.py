@@ -61,8 +61,9 @@ def canonical_json_from_recipe(vector, max_body_size: int):
     body = body_from_recipe(parts)
     for forbidden in ("\r", "\n", "\ufeff"):
         assert forbidden not in body, f"{vector['id']}: the recipe needs §2 normalisation"
-    assert body == body.strip() and "\t" not in body, (
-        f"{vector['id']}: the recipe needs §2 normalisation")
+    assert (
+        body == body.strip() and "\t" not in body
+    ), f"{vector['id']}: the recipe needs §2 normalisation"
     to_field = given["to"]
     to_field = ", ".join(to_field) if isinstance(to_field, list) else to_field
     for field in (given["from"], to_field, given["subject"]):
@@ -71,8 +72,9 @@ def canonical_json_from_recipe(vector, max_body_size: int):
     cut = body[:max_body_size]
     stated = vector["expected"].get("truncated_body_length")
     if stated is not None:
-        assert len(cut) == stated, (
-            f"{vector['id']}: the cut is {len(cut)} code points, the vector says {stated}")
+        assert (
+            len(cut) == stated
+        ), f"{vector['id']}: the cut is {len(cut)} code points, the vector says {stated}"
     obj = {
         "from": given["from"],
         "to": to_field,
@@ -134,7 +136,9 @@ def validate_vectors(vectors_path=None, dump: bool = False) -> int:
             print(f"    computed: {computed}")
             failed += 1
 
-    print(f"\nResults: {passed} passed, {failed} failed, {skipped} skipped out of {len(vectors)} vectors")
+    print(
+        f"\nResults: {passed} passed, {failed} failed, {skipped} skipped out of {len(vectors)} vectors"
+    )
     if failed:
         return 1
     if passed == 0:

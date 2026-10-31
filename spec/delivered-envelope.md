@@ -1,7 +1,7 @@
 <!-- Developer Preview copy of the ZEKNOP Signed Email specification. -->
 **`delivered-envelope.md`** — what is delivered. Version 1.4 (2026-09-17).
 Publisher: Zeknod OÜ. Licence: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-Source digest (SHA-256 of the file this copy was made from): `e9469359e6a6e605adf3c6d4cedd7659cdb306833f9afaf3950a8c7f794bc87a`.
+Source digest (SHA-256 of the file this copy was made from): `af23406d22a7ee288d474083d531a296aceccf6d09758f11dd53091d991ed013`.
 This copy differs from that file in this header and in the reference rewrites described in
 [README.md](README.md): a pointer to something a reader outside the publisher's repository
 cannot open becomes a pointer inside this package or is dropped. No normative sentence is
@@ -26,7 +26,9 @@ you can check it.
 
 # ZEKNOP Delivered Envelope Specification
 
-**Version:** 1.4 (2026-09-17, first issued with `v1.4.0-beta.1`)
+**Version:** 1.4 (2026-09-17, first issued with `v1.4.0-beta.1`). Where a rule added later
+names the release or the relay contract version it holds from, it does so in its heading or its
+text (§3.4).
 **Status:** Normative
 **Scope:** The visible block a ZEKNOP signer writes into the delivered message, the signer
 invariant it serves, the signer policies for a message that cannot be signed, what a
@@ -121,6 +123,10 @@ Text outside these markers is not covered by the signature. ZEKNOP never confirm
   (§5). A positive envelope never names a placeholder or an invented identifier.
 - The block does not claim that the message is verified. It names the message and points
   to where it can be checked.
+- The closing sentence says that text outside the markers is not covered. It does not say
+  that everything inside them is: the `Message ID` and `Verify` lines are not covered (above),
+  and the content between the markers is covered as `canonical-content.md` normalises it, up
+  to the length limit of its §2.
 
 ### §3.2 Not-verified envelope (message the signer could not sign)
 
@@ -294,7 +300,7 @@ matter to the verdict.
 All three signers build these two blocks, each of them once. Vectors: the `build_html`
 set of `../vectors/delivered-envelope-vectors.json`.
 
-### §3.4 The portal host is the given deployment's (normative from 1.8)
+### §3.4 The portal host is the given deployment's (normative from relay contract 1.8)
 
 The link line of the positive envelope reads `Verify: <portal>/<token>`, where `<portal>`
 is **the portal host of the given deployment** and not a fixed name. The production
@@ -425,7 +431,7 @@ other value, and any other value keeps the signer from starting (no silent fallb
 A customer who wants no block inside a document they do not control asks for `strict` and
 gets today's behaviour: their unsigned HTML mail is deferred rather than delivered with a
 block their own markup could hide. Under `mild` a reader of an HTML part may not see the
-block, and nothing in the product says they will — the end point holds the verdict (§8). A message of a signing
+block, and nothing promises that they will — the end point holds the verdict (§8). A message of a signing
 domain — its From domain, or else the domain it is submitted as — follows that domain's
 policy on every path: a source the signer does not trust for the domain, a missing identity,
 a relay that is down or refuses, a structure the signer does not sign. The Thunderbird plugin
@@ -493,35 +499,44 @@ also reports which kind is outermost (`deliveredEnvelopeKind` /
 `delivered_envelope_kind`: `positive`, `legacy-positive`, `not-verified`, or none).
 
 **An HTML part (§3.3.1) is taken off at its two ends and nowhere else.** The rule runs on
-the part's own bytes, not on a resolved text, because the blocks are written as bytes:
+the part's source — its markup as it stands, before `canonical-content.md` §2b.3 resolves
+anything — because the blocks are written into the source:
 
-1. The part must **begin** with a head block — its opening comment at the very start, or
-   right after a leading DOCTYPE declaration (§3.3.1). When it does not, the part is
-   returned unchanged: the comments are **never searched for inside the part**, for the same
-   reason the plain markers are not. The block that begins the part decides the kind.
-2. The head block ends at the first occurrence of its own comment **after** the opening one;
-   everything from the opening comment to the end of that line is removed — the whole block,
-   the marker comment, the styled `<div>` and the marker comment again — and the leading
-   DOCTYPE stays where it was.
-3. The part must **end** with the matching tail block: its closing comment as the last
-   non-empty line. The block begins at the last occurrence of that same comment before it.
-   When there is no such pair, only the head block is removed.
+1. The part must **begin** with a head block: its opening comment at the very start, or
+   right after a leading DOCTYPE declaration (§3.3.1). A leading DOCTYPE is optional white
+   space — each reader's own `\s`, not the trim set of `canonical-content.md` §2 step 4; the
+   Python and the JavaScript sets differ at U+FEFF and U+001C–U+001F, and no vector measures
+   that difference — then `<!DOCTYPE` in any letter case and everything up to the first `>`, and it counts
+   only when it holds an even number of `"` characters; one line break (CRLF or LF)
+   directly after it belongs to it. The opening comment must follow directly. When the part
+   does not begin this way, it is returned unchanged and no kind is reported: the comments
+   are **never searched for inside the part**, for the same reason the plain markers are
+   not. The opening comment that begins the part decides the kind.
+2. The head block ends at the first occurrence of its own comment **after** the opening one.
+   It is removed from the opening comment to the end of that second comment — the marker
+   comment, the styled `<div>` and the marker comment again — and one line break (CRLF or
+   LF) when one follows directly; anything else after the comment is content. The leading
+   DOCTYPE, with its line break, stays where it was.
+3. The part must **end** with the matching tail block: the last occurrence of its closing
+   comment, followed by nothing but CR and LF characters. The block begins at the occurrence
+   of that same comment before it, which must lie after the head block; text in front of it
+   on the same line is content. When there is no such pair, or the head block of step 2 is
+   not complete, the part is returned **unchanged** and no kind is reported: the head block
+   is not removed on its own.
 4. What is left — the DOCTYPE, if any, and the sender's markup between the two blocks — is
    the content, byte for byte as it arrived.
 5. As in a plain part, a **not-verified** HTML envelope is recognised and **nothing is taken
-   off**: the part is hashed as it is, so it does not recompute to a signature.
+   off**: the part is hashed as it is, so it does not recompute to a signature. The kind is
+   decided by the opening comment alone; steps 2 and 3 are not asked of it.
 
 A head or tail block quoted inside the content (a reply or a forward that carries an earlier
 message, whether as `>` lines or inside a `<blockquote>`) is content: it is not at an end of
 the part, so nothing removes it.
 
-This rule reads **lines of text**. Where it has to be applied to an HTML part — the free
-form of a message that has no displayed `text/plain` part, and a forwarded copy compared
-against a signature record — the markup is resolved to text first (`canonical-content.md` §2b.3) and these five
-steps run on the resulting text, not on the source: in HTML the markers sit inside
-elements, may be split across them and their characters may be written as references, so
-looking for them in the markup finds nothing. `canonical-content.md` §2b.7 says which
-release owns that change and why it is not made here.
+Every implementation applies this rule to the source and resolves the markup to text only
+afterwards, for the free form (`canonical-content.md` §2b.3). A marker a sender typed into
+the markup in another shape — split across elements, or with its characters written as
+references — is not a block and stays content.
 
 ### §6.2 Removing every envelope when a message is signed again
 
@@ -613,8 +628,12 @@ content inside the signature, as the quoted not-verified envelope does below.
   Learn more: zeknop.org/verified
   ```
 
+  Its link line says more than the signature covers: "has not been altered" is about the
+  whole email, the signature about the signed content (`canonical-content.md` §1). Verifiers
+  still accept the block because mail signed with it exists; no signer writes it.
+
 - **Transition.** Verifiers accept the legacy and the new positive markers (§6.1), with no
-  end date during the beta; withdrawing the legacy markers is a decision after the beta.
+  end date set.
   Signers deliver only the new markers from the release that introduces them (one cutover).
   Deployment order: verifiers first (Shield, portal, Thunderbird extension 1.2.0), signers
   after. `stripAllEnvelopes` removes both positive marker versions and leaves the
@@ -625,26 +644,32 @@ content inside the signature, as the quoted not-verified envelope does below.
 The envelope never carries the verdict; the end point does, without a click, wherever a tool
 exists:
 
-- the Thunderbird plugin's message bar (and later add-ins for other clients);
+- the Thunderbird extension's button in the message display: its label, tooltip and popup;
 - the Shield: `X-ZEKNOP-Content-Verified`, on which the customer's own mail server can put a
   visible banner or label (sample rules for an Exchange transport rule and a Google
   Workspace rule are in the Shield runbook);
 - the verification portal.
 
-A verdict always says in words **what** was verified — "sent from domain X, unchanged" or
-"sent from mailbox Y, unchanged" — and **never** claims that the sender was entitled to send
-it or that the content is legitimate. A genuine domain can send a fraudulent request; the
-verdict speaks about origin and integrity only.
+A verdict always says in words **what** was verified — the identity the signature belongs
+to, and that the signed content (`canonical-content.md` §1) is unchanged — and **never**
+claims that the sender was entitled to send it, that the content is legitimate, or anything
+about the parts of the message outside the signed content. A genuine domain can send a
+fraudulent request; the verdict says only that the signature holds for the signed content
+and names the identity.
 
 X and Y come from the verification itself: the relay's answer names the identity the
 signature belongs to. When it names a mailbox, the verdict is "from mailbox Y" and Y must be
 the message's From address; otherwise, when it names a domain, the verdict is "from domain X"
 and X must be the domain of the From address. A valid signature for another mailbox or
-domain, or an answer that names neither, is not a green verdict in any end point. The Shield
-writes the words into `X-ZEKNOP-Content-Verified-Details` (`Sent from domain X, unchanged` /
-`Sent from mailbox Y, unchanged`), the portal shows them as the title of its green verdict,
-the Thunderbird extension (1.3.0) as the label and tooltip of its toolbar button (`From domain X,
-unchanged` / `From mailbox Y, unchanged`).
+domain, or an answer that names neither, is not a green verdict in any end point. At this
+release the three end points write the words as follows: the Shield into
+`X-ZEKNOP-Content-Verified-Details` (`Sent from domain X, unchanged` / `Sent from mailbox Y,
+unchanged`), the portal as the title of its green verdict (`Sent from domain X, signed content
+unchanged` / `Sent from mailbox Y, signed content unchanged`), the Thunderbird extension (1.3.0)
+as the label and tooltip of its button (`From domain X, unchanged` / `From mailbox Y,
+unchanged`). The Shield's and the extension's words say "unchanged" without the qualifier the
+portal's title carries. In all three the word means the signed content (`canonical-content.md`
+§1), and nothing outside it is claimed.
 
 The envelope in the body is for a reader without any tool. For that reader a text saying
 "verified" was never evidence either, because anyone can type it.

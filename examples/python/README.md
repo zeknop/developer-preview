@@ -170,5 +170,5 @@ that gets either wrong is wrong about messages nobody touched:
   read side by side;
 - [`../../api/`](../../api/) — the public part of the relay's HTTP contract, and the
   semantics the schema cannot state. Read it before `relay.py`;
-- [`../../sandbox/`](../../sandbox/) — a deployment to try this against;
+- [`../../sandbox/`](../../sandbox/) — what a sandbox relay is (none is published with this preview);
 - [`../js/`](../js/) — the same three commands in JavaScript.

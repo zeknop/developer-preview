@@ -541,7 +541,7 @@
                 "type": "null"
               }
             ],
-            "description": "The attachment metadata of the message, at most 50 entries; omitted for a message with no attachment. The metadata is part of what is signed.",
+            "description": "The attachment metadata of the message, at most 50 entries; omitted for a message with no attachment. The relay keeps it with the signature record. It is not part of the signature input (signature-input.md §2): the attachments are covered through the parts manifest of the content hash.",
             "title": "Attachments"
           },
           "content_hash": {
@@ -1120,7 +1120,7 @@
     }
   },
   "info": {
-    "description": "The paths a third-party client needs in order to sign a message through a ZEKNOP relay or to check a signature it received, plus the paths the verification portal reaches without a credential. The rest of the relay's surface — administration, billing, tenant configuration, the keys of a mail server, revocation and erasure — is not part of this document and is not part of what this preview describes.\n\nThis file is generated from the relay's own schema and filtered to those paths; it is not written or edited by hand. `README.md` beside it carries the semantics a schema cannot state, and `API-CHANGELOG.md` what changed for a caller.\n\nDeveloper Preview: the protocol and the API may change; nothing here is a security guarantee.\n\nNo server is listed on purpose: the base URL is the relay you were given.",
+    "description": "The paths a third-party client needs in order to sign a message through a ZEKNOP relay or to check a signature it received, plus the paths the verification portal reaches without a credential. The rest of the relay's surface — administration, billing, tenant configuration, the keys of a mail server, revocation and erasure — is not part of this document and is not part of what this preview describes.\n\nThis file is generated from the relay's own schema and filtered to those paths: the shape is the schema's, and every description is the publisher's public text, which the generator sets in place of the server's own wording. It is not edited by hand. `README.md` beside it carries the semantics a schema cannot state, and `API-CHANGELOG.md` what changed for a caller.\n\nDeveloper Preview: the protocol and the API may change; nothing here is a security guarantee.\n\nNo server is listed on purpose: the base URL is the relay you were given.",
     "license": {
       "name": "CC BY 4.0",
       "url": "https://creativecommons.org/licenses/by/4.0/"

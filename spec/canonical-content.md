@@ -1,7 +1,7 @@
 <!-- Developer Preview copy of the ZEKNOP Signed Email specification. -->
 **`canonical-content.md`** — what is hashed. Version 1.4 (2026-09-23).
 Publisher: Zeknod OÜ. Licence: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-Source digest (SHA-256 of the file this copy was made from): `9841d3c929c2cbf51008d10e10e149f55c09e9ff616f1d699f593b25f22ae4b8`.
+Source digest (SHA-256 of the file this copy was made from): `5ca99eb5be32b6247e80c65d7c9e745b0a91ce9809a90e950bf39d707c5d35e5`.
 This copy differs from that file in this header and in the reference rewrites described in
 [README.md](README.md): a pointer to something a reader outside the publisher's repository
 cannot open becomes a pointer inside this package or is dropped. No normative sentence is
@@ -118,18 +118,24 @@ bytes are read to text by exactly this rule, in every implementation:
 1. Take the label, remove leading and trailing ASCII whitespace
    (U+0009, U+000A, U+000C, U+000D, U+0020) and ASCII-lowercase it.
 2. If the label names a **legacy single-byte encoding** of the WHATWG Encoding
-   Standard, read every byte through that encoding's index.
+   Standard, read every byte through that encoding's index
+   (`tables/whatwg-single-byte.json`).
 3. Otherwise, if the label names a **multi-byte encoding** of that standard
    (Big5, EUC-JP, EUC-KR, GBK, gb18030, ISO-2022-JP, Shift_JIS, UTF-16BE,
    UTF-16LE, x-user-defined, and the labels the standard maps to `replacement`),
    run that encoding's **decoder algorithm** of the standard over the index data
-   pinned per the paragraph below.
+   pinned in `tables/whatwg-indexes.json`. The decoder
+   algorithms are the standard's text as published with those index files,
+   with one exception, EUC-JP: after a lead byte, a byte outside 0xA1–0xFE that
+   does not complete a character goes back to the input **whether or not it is
+   ASCII**, which is the standard's text before 5 May 2017; today's text puts
+   back an ASCII byte only. `F8 89` is therefore two U+FFFD, not one.
 4. Otherwise — **including a label that names no encoding at all** (`utf-32`,
    `x-unknown`, `cp437`, an empty label) and a part that declares no charset —
    read the bytes as **UTF-8**.
 
 Reading never fails. A byte an encoding cannot use is exactly one U+FFFD where
-the standard's decoder says so; no charset label may make a message
+the standard's decoder says so (for EUC-JP, where point 3 says so); no charset label may make a message
 unverifiable, and none may make it undeliverable (no permanent 4xx).
 
 No implementation may use a decoder of its own runtime for steps 2 and 3.
@@ -149,8 +155,9 @@ Standard, identifier and date per file, fetched from
 `https://encoding.spec.whatwg.org/` and committed:
 `index-big5.txt`, `index-euc-kr.txt`, `index-gb18030.txt`,
 `index-gb18030-ranges.txt`, `index-jis0208.txt`, `index-jis0212.txt`, all
-dated **2024-09-18**. Their identifiers are pinned in one committed manifest
-file; the decoder modules are generated from that file and nothing else.
+dated **2024-09-18**. Their identifiers, and the index data itself, are in
+`tables/whatwg-indexes.json`; the decoder modules are generated from that file and
+nothing else.
 
 **No byte order mark sniffing.** The label decides; a byte order mark in the
 bytes is read as U+FEFF like any other character. It is then removed by step 1
@@ -395,7 +402,7 @@ dropped: an implementation does not build a tree, so it cannot know what a
 
 **Unicode 15.1.0.** The canonical decomposition mappings, the canonical
 combining classes and the composition pairs of that version, and the HTML5
-named character references, are generated once and pinned as one committed table file; the four
+named character references, are generated once and pinned as `tables/free-form-tables.json`; the four
 implementation modules are generated from it by one generator and are not
 edited by hand. NFC itself is the Unicode algorithm (full canonical decomposition,
 canonical ordering, canonical composition, with the Hangul syllables handled
@@ -481,7 +488,8 @@ The `from` field MUST contain exactly one email address, normalized as follows:
    - JavaScript (Thunderbird): extract from `<angle brackets>`, fallback to bare address
 2. Extract the `addr-spec` (local-part@domain)
 3. Convert to lowercase
-4. Strip all whitespace
+4. Remove leading and trailing whitespace (whitespace inside a quoted local part stays,
+   see below)
 
 **Quoted local parts:** If the local-part is surrounded by double quotes (e.g. `"foo bar"@example.com`), the quotes MUST be stripped: `foo bar@example.com`. This ensures cross-component consistency — some RFC 5322 parsers preserve quotes (`email.utils.getaddresses` in Python) while others strip them (`email-addresses` npm). Stripping is the normalization rule.
 
@@ -502,7 +510,7 @@ The `to` field contains recipients from the `To` and `Cc` headers (see §6 for B
    - Python: `email.utils.getaddresses([to_header, cc_header])`
    - JavaScript (Node/Haraka): `email-addresses` npm, `parseAddressList()`
    - JavaScript (Thunderbird): Thunderbird API provides pre-parsed arrays; extract bare addresses
-3. For each address: extract `addr-spec`, strip quotes from local-part (see §3), convert to lowercase, strip whitespace
+3. For each address: extract `addr-spec`, strip quotes from local-part (see §3), convert to lowercase, remove leading and trailing whitespace
 4. Filter out empty/invalid addresses
 
 ### Ordering
@@ -543,8 +551,8 @@ ISO-8859-1, which cannot fail. (This is the header block only; §2 step 0 is the
 rule for a part's payload.)
 
 **Encoded words (normative since v1.4 — §11 point 4).** An encoded word is
-`=?charset?encoding?text?=` where `charset` and `text` contain no `?` and
-`encoding` is `B`, `b`, `Q` or `q`. Each one is read as follows:
+`=?charset?encoding?text?=` where `charset` is one or more characters other
+than `?`, `text` contains no `?` and `encoding` is `B`, `b`, `Q` or `q`. Each one is read as follows:
 
 1. `charset` is everything before the first `*` (an RFC 2231 language tag is
    dropped). The payload bytes are read to text by **exactly the rule of §2
@@ -558,8 +566,9 @@ rule for a part's payload.)
    partial group is dropped.
 3. `Q`: `_` is one 0x20 byte; `=` followed by two hexadecimal digits is that
    byte; every other character is its own code unit masked to eight bits.
-4. A word whose syntax is broken — a `B` payload that is not base64, an encoding
-   letter that is neither B nor Q — is **not an encoded word**. It stays in the
+4. A word whose syntax is broken — an empty `charset` (`=??Q?…?=`), a `B` payload
+   that is not base64, an encoding letter that is neither B nor Q — is **not an
+   encoded word**. It stays in the
    Subject exactly as it stands. Nothing here raises, so no Subject may make a
    message undeliverable (this closes a permanent 451 the milter used to answer
    for an unknown charset name).
@@ -575,18 +584,16 @@ entirely, whatever they say.
 
 **BCC is EXCLUDED from canonical content.**
 
-The canonical content hash covers `To + Cc + Subject + Body`. BCC recipients are intentionally omitted because:
+The canonical content hash covers the canonical content object of §1: the sender, the To
+and Cc recipients, the subject, the body or the parts manifest (attachments included) and
+the timestamp. BCC recipients are intentionally omitted because:
 
 1. MTAs strip BCC headers before delivery — the Shield cannot see them
 2. Including BCC would require per-recipient signing, which breaks the single-signature model
 
 ### Signing with BCC Present
 
-The plugin MUST sign the email even when BCC recipients are present. The signature covers To+Cc+Subject+Body only. BCC recipients receive a validly signed email, but the BCC header itself is not integrity-protected.
-
-### Per-Recipient Signing (Enterprise, NOT in MVP)
-
-A future Enterprise feature MAY add per-recipient signing via `X-ZEKNOP-Recipient-Binding` header. This is opt-in and requires Haraka/milter cooperation. It is explicitly OUT OF SCOPE for the current protocol version.
+The plugin MUST sign the email even when BCC recipients are present. The signature covers the canonical content object of §1 and nothing else. BCC recipients receive a validly signed email, but the BCC header itself is not integrity-protected.
 
 ---
 
@@ -635,7 +642,7 @@ The same timestamp is used in both the canonical content object and the `X-ZEKNO
 ### Verification (Signature Age)
 
 Decided (2026-04-25): inbound verification has NO max-age expiry. Signatures remain
-permanently verifiable — this is an intentional "forensic proof" design decision. The relay API
+permanently verifiable by design. The relay API
 `/v1/verify` and all inbound verification components (proxy/Shield, milter, plugin) MUST NOT
 reject signatures based on age. Age is not what is checked. Any alteration after signing of
 the content the hash covers — the canonical content object of §1, after the normalisation of
@@ -646,10 +653,16 @@ Redis SETNX record of each verified tuple on its non-proxy path (see §8 Replay 
 
 When verifying, only the future-timestamp guard applies:
 
-| Condition | Action | UX |
-|-----------|--------|----|
-| `timestamp > now + 30s` | REJECT | Red — "Signature from the future (clock skew exceeded)" |
-| `timestamp ≤ now + 30s` | ACCEPT | Proceed to cryptographic verification |
+| Condition | Action | Reason tag | UX |
+|-----------|--------|------------|----|
+| `timestamp > now + 30s` | REJECT | `future_skew_exceeded` | Red — "Signature from the future (clock skew exceeded)" |
+| `now < timestamp ≤ now + 30s` | ACCEPT | `within_clock_skew` | Proceed to cryptographic verification |
+| `timestamp ≤ now` | ACCEPT | `permanent_verifiability` | Proceed to cryptographic verification |
+
+The reason tags are the `expected_reason_tag` values of the timestamp vectors. Their
+outbound rows (`ts-005`, `ts-006`) carry `outbound_stale` for `now − timestamp > 24 h`
+(REJECT) and `within_outbound_window` for anything else (ACCEPT). No signer of the publisher's
+applies that window (Age Windows below, and §12).
 
 **Validation order:** Timestamp validation MUST happen BEFORE cryptographic verification. This prevents wasting compute on future-dated signatures and provides faster UX feedback.
 
@@ -662,7 +675,7 @@ A ±30 second tolerance is allowed for future timestamps to accommodate clock dr
 | Context | Max Age | Rationale |
 |---------|---------|-----------|
 | Inbound verification (all components) | **None** | Permanent verifiability. Integrity bound by content hash + revocation. |
-| Outbound MTA (Haraka, Milter) | 24 hours | Outbound signing should be fresh; 24h catches MTA queue issues |
+| Outbound MTA (Haraka, Milter) | 24 hours, not applied | The rule the outbound timestamp vectors describe; neither signer checks the age of a timestamp (§12, unticked) |
 | Relay API `/v1/sign` | 30 seconds | Signing request must be real-time |
 | Relay API `/v1/verify` | None | Permanent verifiability. Future-guard only. |
 
@@ -670,8 +683,8 @@ A ±30 second tolerance is allowed for future timestamps to accommodate clock dr
 
 Inbound verification security rests on five layers, not timestamp expiry:
 
-1. **Content hash binding** — the SHA-256 hash covers from+to+subject+body+timestamp, as §1
-   to §5 normalise them; any alteration of that content invalidates the hash and the
+1. **Content hash binding** — the SHA-256 hash covers the canonical content object of §1
+   (sender, recipients, subject, body or parts manifest, timestamp), as §1 to §5 normalise it; any alteration of that content invalidates the hash and the
    signature check fails. What the normalisation removes, and a body past its first
    1,048,576 characters, is not covered.
 2. **Sender binding** — the UUID maps to a registered identity (email address or domain); the
@@ -740,14 +753,15 @@ boundary parameter is absent or produces no children would otherwise contribute
 nothing, leaving its body cryptographically UNBOUND — an attacker could swap the
 whole body under a valid signature. Instead it becomes a single opaque leaf
 `{"k":"opaque","h":"<base64 SHA-256 of the raw container body>"}`, so the
-manifest is never empty (§9.1) and any change to the body breaks the hash. This
-is deliberately fail-closed: a genuinely malformed message may not round-trip
-byte-for-byte across parsers, but a tampered message does not verify.
+manifest is never empty (§9.1) and a change to that body changes the leaf's hash.
+This is deliberately fail-closed: a genuinely malformed message may not round-trip
+across parsers, but a message whose container body was changed does not verify.
 
 `message/rfc822` as an opaque leaf is the v1.3 decision: one rule for Haraka
 (which never descended) and Shield (which did) ends the forward-divergence, and the
-whole attached `.eml` is bound byte-for-byte. We deliberately do not look inside: the
-signature covers the delivered content, not the nested message.
+whole attached message is one leaf, hashed over its bytes as delivered (§9.3). We
+deliberately do not look inside: nothing in the nested message is canonicalised or hashed
+on its own.
 
 ### §9.2a A usable boundary (normative since v1.4)
 
@@ -787,7 +801,13 @@ matches — and never the white space of the reading language:
    `*` is never percent-decoded: `boundary="a%41b"` is the five characters `a%41b`, and
    `boundary*0="a%41b"` is `aAb`.
 5. A **plain** `boundary=` parameter written in the same field **wins** over the
-   segments, wherever in the field it stands.
+   segments, wherever in the field it stands. It is `boundary` in any letter case, white
+   space allowed, `=`, white space allowed, and the value: a quoted string — one or more
+   characters other than `"` between two `"`, with no escapes — or, where there is none,
+   the run of characters up to the next `"` or `;`, an opening `"` skipped
+   (`boundary=SEP` in `pm-002` and `boundary = "SEP"` in `pm-003` are both `SEP`). The
+   first match in the field from the left is the one, and nothing requires `boundary` to
+   begin a parameter name.
 6. The boundary is the value of the first `boundary=` this leaves, with leading and
    trailing characters of the **trim set of §2 step 4** removed — that set and no other.
    A reader that trims with its own language's white space reads a different container:
@@ -820,8 +840,7 @@ reaches a reader with a signature was never one of them.
 
 **Scope.** §9.2a pins the BOUNDARY. The other parameters of a part header — `filename`
 and `name` (§9.4), `charset` (§2 step 0) — are still read by each implementation's own
-parameter rules, and a continued `filename*0`/`filename*1` is not measured anywhere
-yet; that is the next canonicalisation window's question, not this one's.
+parameter rules, and a continued `filename*0`/`filename*1` is not measured anywhere.
 
 ### §9.3 Entry construction
 
@@ -921,8 +940,8 @@ the verifier means the two cannot answer differently about the shape, the order 
 the leaves or where a boundary is.
 
 **Why the v1.3 rule is retired.** "Plain only" was written when the milter had no MIME
-walk of its own; the consequence was that every HTML or multipart message — most mail —
-went out UNSIGNED, and beta ships the Thunderbird extension plus the milter.
+walk of its own; the consequence was that every HTML or multipart message the milter
+handled went out UNSIGNED.
 Refusing to sign is not a security property when the alternative is one walk, held to
 the vectors.
 
@@ -940,7 +959,7 @@ configuration asking for the old degraded mode stops the milter at start (§5 of
 **The envelope is outside the hash.** The exact bytes of both envelopes, where they go,
 and how a verifier takes the outer one off again live in `delivered-envelope.md` §3, §4
 and §6.1 — one document for all three signers, because the block is what a human reads
-and three wordings would be three products. Signer and verifier both take it off
+and three wordings would be three envelopes. Signer and verifier both take it off
 (`strip_zeknop_envelope` / `stripDeliveredEnvelope` / `stripZeknopEnvelope`) before
 hashing, so the delivered message hashes back to the value that was signed. The
 identifier and the link inside the positive envelope are written after signing, which is
@@ -973,7 +992,8 @@ Canonical content (all four implementations, driven by `../vectors/vectors.json`
 - [x] Trim trailing whitespace per line
 - [x] NOT collapse blank lines
 - [x] Trim entire body string
-- [x] Truncate body to 1 MB (`e2e-003`)
+- [x] Truncate the body to its first 1,048,576 characters, counted as code points
+      (`e2e-003`, `e2e-004`)
 - [x] Parse From using RFC 5322 parser → lowercase bare address
 - [x] Parse To+Cc using RFC 5322 parser → lowercase bare addresses, original order, `", "` join (`rcpt-001`…`rcpt-009`)
 - [x] Trim Subject
@@ -1000,7 +1020,7 @@ Timing and delivery:
 - [ ] Validate the timestamp before cryptographic verification, in every verifier
 - [ ] Reject signatures older than 24 hours (outbound MTA only)
 - [ ] `../vectors/timestamp-vectors.json` — the §8 boundary fixture exists but
-      NO test reads it
+      no test of the publisher's reads it (the example clients' conformance runs do)
 
 **Where each implementation is held to the ticked rows.** Each of the four — the
 Thunderbird plugin, the Haraka plugin, the Shield and the postfix-milter — is held to
@@ -1025,7 +1045,7 @@ See `../vectors/vectors.json` for normative test vectors covering:
 - Recipient parsing (angle brackets, display names, comments, quoted local parts)
 - Punycode and internationalized domain names
 - Empty body, single character body
-- Body truncation at 1 MB
+- Body truncation at 1,048,576 characters (code points)
 - v1.3 parts manifest (vectors v2.4): two text/plain parts (injectivity), re-split
   html `["A","B"]` vs `["AB"]`, `message/rfc822` opaque, mixed manifest in
   document order, unnamed attachment (`n` omitted), and the backward-compat anchor

@@ -1,7 +1,7 @@
 <!-- Developer Preview copy of the ZEKNOP Signed Email specification. -->
-**`CHANGELOG.md`** — the normative changes, version by version. Version the changes up to v1.4 (newest entry 2026-10-24).
+**`CHANGELOG.md`** — the normative changes, version by version. Version the changes up to v1.4 (newest entry beta.12).
 Publisher: Zeknod OÜ. Licence: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-Source digest (SHA-256 of the file this copy was made from): `d60148293932e939bf92c7af0291f00346cb86e345f7ad3018ea9af250cfcfc0`.
+Source digest (SHA-256 of the file this copy was made from): `56d80a74b1bd33378fc1993a7a97dd81709fe9315e23965cc08575a6f72cef64`.
 This copy differs from that file in this header and in the reference rewrites described in
 [README.md](README.md): a pointer to something a reader outside the publisher's repository
 cannot open becomes a pointer inside this package or is dropped. No normative sentence is
@@ -13,6 +13,49 @@ changed.
 
 Normative changes to the specification in this directory: `canonical-content.md`,
 `delivered-envelope.md` (from v1.4) and `signature-input.md` (from v1.4).
+
+## v1.4 — beta.12: what the implementations do, where the text left it open
+
+No rule changes and every vector gives the answer it gave. An implementation written from these
+documents and the vectors alone had to guess in about ten places; each place now says what the
+implementations and the vectors do, and a few sentences that said more than the signature covers
+now say what it covers.
+
+**`canonical-content.md` §2 step 0** names the one decoder that does not follow today's text of
+the Encoding Standard: after a lead byte, EUC-JP puts back every byte outside 0xA1–0xFE that does
+not complete a character, not only an ASCII one, which is the standard's text before 5 May 2017.
+
+**§3 and §4** remove leading and trailing white space from an address; white space inside a
+quoted local part stays, as the example in §3 always showed. "Strip all whitespace" said
+otherwise. **§5:** an encoded word needs a non-empty charset; `=??Q?…?=` stays as it stands.
+
+**§6** says what the hash covers by pointing at the object of §1 (the list named four fields
+and left out the sender, the parts manifest and the timestamp), and no longer describes a
+feature that is not part of the protocol. **§8** gives the reason tags of the timestamp
+vectors beside the conditions, and says that the 24-hour outbound window of the Age Windows
+table is not applied by either signer; Replay Model point 1 points at the object of §1. **§9.2a point 5** gives the syntax of a plain `boundary=`
+parameter as the readers' expression has it. **§9.2** says what the opaque leaf and the
+`message/rfc822` leaf hash instead of "byte-for-byte" and "any change". **§12:** the body
+limit is 1,048,576 characters counted as code points, not "1 MB".
+
+**`delivered-envelope.md` §6.1, the HTML rule,** runs on the source, as every implementation
+does; the paragraph that said it runs on resolved text described an order no implementation
+uses. The DOCTYPE, the line break after the head block and the end of the tail block are
+written down as the implementations read them. A part whose tail block is missing is returned
+unchanged and reports no kind; the text said the head block alone was removed. The kind of a
+not-verified envelope is decided by its opening comment alone.
+
+**`delivered-envelope.md` §3.1** says what the closing sentence does not claim, **§7** that the
+legacy link line claims more than the signature covers, and **§8** gives the green verdict's
+words in all three end points as they stand at this release and says that "unchanged" in them
+is about the signed content. Its version line says where a later rule names the release or the
+relay contract it holds from (§3.4), and §3.4's heading names the relay contract.
+
+**`signature-input.md` §3** no longer dates a reserved name. **§6** dates the attachment-name
+hash to the release it came with (beta.10, where this changelog now records it). **§6a** says
+that an identity which is not active leaves the signed content as it was signed, and that the
+`pass` row gives the Shield's words at this release, which the portal's green title says in
+full.
 
 ## v1.4 — 2026-10-24 (beta.11): sentences the code does not say, and the JavaScript cut
 
@@ -81,9 +124,9 @@ and it keeps U+FEFF). §5 and §9.4 trim with the same set.
 points; the constant's name once said bytes. An implementation that cuts UTF-16 code units
 differs only for a body over the limit that carries a character outside the Basic Multilingual
 Plane before the cut. The publisher's JavaScript implementations — the signer, the portal and
-the plugin — still cut code units at that release and are to follow in a later one; until then a
-message of that kind they signed does not verify for a reader that follows this rule. (They
-follow in beta.11 — the entry above.)
+the plugin — still cut code units at that release, and a message of that kind they signed
+does not verify for a reader that follows this rule. (They cut code points from beta.11 —
+the entry above.)
 
 **`canonical-content.md` §8 and §9.2** no longer say more than the construction does: §8 says
 which content the hash covers — the normalised fields, and the first 1,048,576 characters of
@@ -102,7 +145,9 @@ expiring.
 labels the documents never defined; each sentence already says what it refers to, and the one
 in `delivered-envelope.md` §4 now points at the exception above it rather than below.
 
-## v1.4 — 2026-10-05 (beta.8): one rule for the customer's action, one sentence for a version
+## v1.4 — 2026-10-15 (beta.10): the relay receives a hash of the attachment's name
+
+This entry stood under beta.8 until beta.12; the change came with beta.10.
 
 **The relay receives a hash of the attachment's name, not the name** — `signature-input.md`
 §6 and §7: the `filename` field of an `attachments` entry carries SHA-256 over the UTF-8 bytes
@@ -133,6 +178,8 @@ nothing for `/v1/sign-domain` in practice.
 hashes. This stands in §6 so that nobody builds a comparison of names across systems on top of
 it.
 
+## v1.4 — 2026-10-05 (beta.8): one rule for the customer's action, one sentence for a version
+
 **`signature-input.md` §6a.1 (new, normative).** What a customer's `on_fail` acts on is
 written down as ONE rule and ONE table: it is taken by every message that claims an identity
 the relay knows and that cannot be declared valid, and it is not taken when the claimed
@@ -150,7 +197,7 @@ state field, in the Details a reader can open and in the log, not in the sentenc
 Decided 5 October 2026.
 
 **`identity-not-active` is written into §6a's table of what a reader says**: `Not verified:
-identity not active`. It is not red — the bytes are the bytes that were signed — and it takes
+identity not active`. It is not red — the signed content is the content that was signed — and it takes
 `on_fail`, because the relay knows the identity and cannot declare the message valid.
 Decided 5 October 2026. The relay's side of it is unchanged: `reason` has
 carried the word since contract 1.8.
@@ -197,7 +244,7 @@ not-verified envelope and a sentence of the sender's own that merely names our h
 stay.
 
 **What this means for mail already signed.** A message signed before the cutover
-verifies unchanged. A verification link made before it works unchanged. A signer, a
+verifies as it did. A verification link made before it works unchanged. A signer, a
 verifier and the relay all have to move together on the day the input changes, which is
 why the deployment order is relay, verifiers, signers.
 
@@ -206,8 +253,7 @@ why the deployment order is relay, verifiers, signers.
 **§9.5 Milter scope — rewritten.** The postfix-milter now signs Shape A *and* Shape B.
 The old rule ("plain only, MUST NOT implement `parts`, ACCEPT unsigned otherwise")
 was written when the milter had no MIME walker; its practical effect was that HTML
-and multipart mail — most mail — went out unsigned, while beta ships the Thunderbird
-plugin plus the milter. The milter does not carry a second implementation of §9:
+and multipart mail the milter handled went out unsigned. The milter does not carry a second implementation of §9:
 it reassembles the wire form from what libmilter hands it and reads it with the
 Shield's own MIME walk and canonical builders, imported as a shared library. The section
 now also states the fail-closed rules and the delivered envelope (outside the hash,
@@ -225,7 +271,7 @@ plugin; the spec now says which bytes count.
 where a test holds an implementation to the rule. Four rules are deliberately left unticked
 because nothing pins them today (BCC exclusion, verifier-side timestamp validation,
 the 24-hour outbound age limit, and `../vectors/timestamp-vectors.json`, which no
-test reads).
+test of the publisher's reads).
 
 ## v1.3 — 2026-08-09
 

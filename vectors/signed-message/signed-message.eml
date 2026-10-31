@@ -1,0 +1,31 @@
+X-ZEKNOP-Version: 1.5
+X-ZEKNOP-Sig-Alg: ed25519
+X-ZEKNOP-Signature: d6IY6lkrbPuwj10gDo+kj7EOvJz0GVzMmhudvFnkOSD4fHZqdew4eon03eMulYI5/98c/pseb3kGrKH9xu+EAw==
+X-ZEKNOP-Hash: E1pnROcd9C78q2VMffH/NjzK+T9r5Gp9eTUrl95FQPM=
+X-ZEKNOP-UUID: 0f3c2a5e-6b1d-4c7a-9e2f-8d4b1a6c3e70
+X-ZEKNOP-Timestamp: 2026-10-01T09:30:00.000Z
+X-ZEKNOP-Relay: relay.example.org
+X-ZEKNOP-Envelope-ID: Q7K2M9XA
+X-ZEKNOP-Verify: https://verify.example.org/v1/eyJ2IjoyLCJ1dWlkIjoiMGYzYzJhNWUtNmIxZC00YzdhLTllMmYtOGQ0YjFhNmMzZTcwIiwiaGFzaCI6IkUxcG5ST2NkOUM3OHEyVk1mZkgvTmp6SytUOXI1R3A5ZVRVcmw5NUZRUE09In0
+From: Alice Example <alice@example.org>
+To: Bob Example <bob@example.com>
+Cc: carol@example.net
+Subject: The meeting on Thursday
+Date: Thu, 01 Oct 2026 09:30:00 +0000
+Message-ID: <example-0001@example.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+======= ZEKNOP =======
+Message ID: Q7K2M9XA
+Verify: https://verify.example.org/v1/eyJ2IjoyLCJ1dWlkIjoiMGYzYzJhNWUtNmIxZC00YzdhLTllMmYtOGQ0YjFhNmMzZTcwIiwiaGFzaCI6IkUxcG5ST2NkOUM3OHEyVk1mZkgvTmp6SytUOXI1R3A5ZVRVcmw5NUZRUE09In0
+
+Hi Bob,
+
+the meeting moves to Thursday, 14:00, room 2.
+
+Alice
+
+======= END ZEKNOP =======
+Text outside these markers is not covered by the signature. ZEKNOP never confirms authenticity by text inside a message.

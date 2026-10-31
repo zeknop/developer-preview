@@ -1,0 +1,33 @@
+{
+ "description": "One delivered message signed end to end, for the path no other vector covers: the X-ZEKNOP-* fields of the message, both hashes recomputed from it, the signature input of signature-input.md §2 and an Ed25519 signature that holds over it. The key is published here and is the key of no deployment; the message was built by the Python example client of this package.",
+ "message_file": "signed-message.eml",
+ "message_sha256": "29638ea2cb9dcf4e7222ca6890b0ef405b5bc7031709729123335b5b48f5398f",
+ "key": {
+  "about": "sha256 of seed_text is the Ed25519 seed; never use it for anything else",
+  "seed_text": "ZEKNOP Developer Preview: the example key. It signs for no deployment.",
+  "algorithm": "ed25519",
+  "public_key": "gEf8OU0Z7fTy7WMk+IWv6klsA8h5caJv38B8aKLH5v0="
+ },
+ "identity_answer": {
+  "about": "what GET /v1/verify/{identity_uuid} would answer for this identity, the fields the check needs (../../api/README.md, 'The keys of an identity')",
+  "uuid": "0f3c2a5e-6b1d-4c7a-9e2f-8d4b1a6c3e70",
+  "algorithms": [
+   "ed25519"
+  ],
+  "keys": [
+   {
+    "algorithm": "ed25519",
+    "public_key": "gEf8OU0Z7fTy7WMk+IWv6klsA8h5caJv38B8aKLH5v0=",
+    "valid_from": "2026-09-01T00:00:00+00:00",
+    "valid_to": null
+   }
+  ]
+ },
+ "expected": {
+  "strict_hash_b64": "E1pnROcd9C78q2VMffH/NjzK+T9r5Gp9eTUrl95FQPM=",
+  "free_hash_b64": "u9IXXiJqozJxVRrGqHvu++SYvM0q3uOfULiYfp+Olj4=",
+  "signature_input_hex": "5a454b4e4f502d53494703312e35076564323535313920135a6744e71df42efcab654c7df1ff363ccaf93f6be46a7d79352b97de4540f320bbd2175e226aa33271551ac6a87beefbe498bccd2adee39f50b8987e9f8e963e",
+  "signature_b64": "d6IY6lkrbPuwj10gDo+kj7EOvJz0GVzMmhudvFnkOSD4fHZqdew4eon03eMulYI5/98c/pseb3kGrKH9xu+EAw==",
+  "signature_holds": true
+ }
+}
